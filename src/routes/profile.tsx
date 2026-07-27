@@ -454,6 +454,31 @@ function RuleSlider({
 }
 
 function PaymentSheet({ onClose }: { onClose: () => void }) {
+  const [cfg, setCfg] = useState<Awaited<
+    ReturnType<typeof import("@/services/platformConfigService").getPlatformConfig>
+  > | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    import("@/services/platformConfigService")
+      .then(({ getPlatformConfig }) => getPlatformConfig())
+      .then((data) => {
+        if (cancelled) return;
+        setCfg(data);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : "Failed to load payment details");
+      })
+      .finally(() => !cancelled && setLoading(false));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-background/60 backdrop-blur-sm sm:items-center">
       <div className="absolute inset-0" onClick={onClose} aria-hidden />
@@ -462,7 +487,7 @@ function PaymentSheet({ onClose }: { onClose: () => void }) {
           <div>
             <h3 className="text-base font-bold">Subscription payment</h3>
             <p className="text-xs text-muted-foreground">
-              Contact Phamda support to settle your subscription.
+              Transfer using either destination below, then contact support with the reference.
             </p>
           </div>
           <button
@@ -473,7 +498,38 @@ function PaymentSheet({ onClose }: { onClose: () => void }) {
             <X className="h-4 w-4" />
           </button>
         </header>
-        <div className="px-5 py-5">
+        <div className="space-y-4 px-5 py-5">
+          {loading && (
+            <p className="text-sm text-muted-foreground">Loading payment details…</p>
+          )}
+          {error && !loading && (
+            <p className="text-sm text-danger">{error}</p>
+          )}
+          {!loading && !error && !cfg && (
+            <p className="text-sm text-muted-foreground">
+              Payment details are not configured yet. Please contact Phamda support.
+            </p>
+          )}
+          {!loading && !error && cfg && (
+            <>
+              <PayRow
+                icon={Landmark}
+                label="CBE Account"
+                value={cfg.cbe_account_number ?? "—"}
+              />
+              <PayRow icon={CreditCard} label="Telebirr" value={cfg.telebirr ?? "—"} />
+              <PayRow
+                icon={UserCog}
+                label="Account name"
+                value={cfg.payment_full_name ?? "—"}
+              />
+              {cfg.support_phone_number && (
+                <p className="text-xs text-muted-foreground">
+                  Support: <span className="font-mono-data">{cfg.support_phone_number}</span>
+                </p>
+              )}
+            </>
+          )}
           <button
             onClick={onClose}
             className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-primary text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
@@ -486,3 +542,24 @@ function PaymentSheet({ onClose }: { onClose: () => void }) {
     </div>
   );
 }
+
+function PayRow({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof Activity;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-center justify-between rounded-md border border-border bg-surface-low px-3 py-2.5 text-sm">
+      <span className="inline-flex items-center gap-2 text-muted-foreground">
+        <Icon className="h-4 w-4 text-primary" />
+        {label}
+      </span>
+      <span className="font-mono-data font-bold">{value}</span>
+    </div>
+  );
+}
+
