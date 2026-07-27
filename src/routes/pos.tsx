@@ -21,8 +21,7 @@ import { useSession } from "@/hooks/use-session";
 import { useOnline } from "@/hooks/use-online";
 import { useCatalog, type Medication, type Batch } from "@/lib/catalog";
 import { cn } from "@/lib/utils";
-import { salesRepo } from "@/db/repositories";
-import { paymentAccountsRepo } from "@/db/pharmacy-config";
+import * as salesService from "@/services/pos/salesService";
 
 
 
@@ -119,22 +118,16 @@ function PosView() {
   const itemCount = lines.reduce((s, x) => s + x.line.qty, 0);
   const [charging, setCharging] = useState(false);
   const [receipt, setReceipt] = useState<string | null>(null);
-  const [payOpen, setPayOpen] = useState(false);
 
-  function handleCharge() {
+  async function handleCharge() {
     if (lines.length === 0 || charging) return;
     if (!pharmacyId) {
       alert("No pharmacy is linked to your account.");
       return;
     }
-    setPayOpen(true);
-  }
-
-  async function confirmPayment() {
-    if (!pharmacyId || charging) return;
     setCharging(true);
     try {
-      const result = await salesRepo.checkout(
+      const result = await salesService.checkout(
         pharmacyId,
         lines.map((x) => ({
           product_id: x.med.id,
@@ -144,7 +137,6 @@ function PosView() {
         })),
       );
       setCart([]);
-      setPayOpen(false);
       setMobileCartOpen(false);
       setReceipt(result.transaction_id);
       setTimeout(() => setReceipt(null), 2500);
@@ -155,6 +147,7 @@ function PosView() {
       setCharging(false);
     }
   }
+
 
 
   const mobileCartButton = (
@@ -357,14 +350,10 @@ function PosView() {
           </div>
         </div>
       )}
-      {payOpen && (
-        <PosPaymentModal
-          pharmacyId={pharmacyId}
-          total={total}
-          charging={charging}
-          onConfirm={confirmPayment}
-          onClose={() => setPayOpen(false)}
-        />
+      {charging && (
+        <div className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-elev-lg">
+          Committing sale…
+        </div>
       )}
       {receipt && (
         <div className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 rounded-full bg-success px-4 py-2 text-sm font-semibold text-success-foreground shadow-elev-lg">
@@ -666,137 +655,5 @@ function CartRow({
         </button>
       </div>
     </li>
-  );
-}
-type PayMethod = "cash" | "telebirr" | "cbe";
-
-/**
- * Checkout payment modal. Bank / mobile-money details come from the
- * pharmacy's configured payment accounts (Supabase when online, Dexie
- * mirror otherwise).
- */
-function PosPaymentModal({
-  pharmacyId,
-  total,
-  charging,
-  onConfirm,
-  onClose,
-}: {
-  pharmacyId: string | null;
-  total: number;
-  charging: boolean;
-  onConfirm: () => void;
-  onClose: () => void;
-}) {
-  const online = useOnline();
-  const [method, setMethod] = useState<PayMethod>("cash");
-
-  const accounts = useLiveQuery(
-    () => (pharmacyId ? paymentAccountsRepo.local(pharmacyId) : []),
-    [pharmacyId],
-    [],
-  );
-
-  useEffect(() => {
-    if (pharmacyId) void paymentAccountsRepo.refresh(pharmacyId);
-  }, [pharmacyId, online]);
-
-  const account = accounts?.find((a) => a.provider === method);
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-background/60 backdrop-blur-sm sm:items-center">
-      <div className="absolute inset-0" onClick={onClose} aria-hidden />
-      <div className="relative w-full max-w-md rounded-t-2xl border-x border-t border-border bg-surface shadow-elev-lg sm:rounded-2xl sm:border">
-        <header className="flex items-center justify-between border-b border-border px-5 py-4">
-          <div>
-            <h3 className="text-base font-bold">Complete payment</h3>
-            <p className="text-xs text-muted-foreground">Choose how the customer is paying</p>
-          </div>
-          <button
-            onClick={onClose}
-            aria-label="Close"
-            className="grid h-9 w-9 place-items-center rounded-md text-muted-foreground hover:bg-surface-low hover:text-foreground"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </header>
-
-        <div className="px-5 py-5">
-          <div className="rounded-lg border border-border bg-primary-soft/30 p-4">
-            <div className="text-xs font-medium uppercase tracking-wider text-primary">
-              Amount due
-            </div>
-            <div className="mt-1 font-mono-data text-3xl font-bold text-primary">
-              {total.toFixed(2)} <span className="text-base">ETB</span>
-            </div>
-          </div>
-
-          <div className="mt-5">
-            <div className="mb-2 font-mono-data text-[11px] font-bold uppercase tracking-wider text-subtle-foreground">
-              Payment method
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {(["cash", "cbe", "telebirr"] as PayMethod[]).map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => setMethod(m)}
-                  className={cn(
-                    "flex h-12 items-center justify-center rounded-md border text-sm font-semibold transition-colors",
-                    method === m
-                      ? "border-primary bg-primary-soft text-primary"
-                      : "border-border bg-surface text-muted-foreground hover:bg-surface-low",
-                  )}
-                >
-                  {m === "cash" ? "Cash" : m === "cbe" ? "CBE Birr" : "Telebirr"}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {method !== "cash" && (
-            <div className="mt-5 rounded-lg border border-dashed border-border bg-surface-low p-4">
-              <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
-                <Landmark className="h-4 w-4 text-primary" />
-                Transfer to
-              </div>
-              {account ? (
-                <dl className="mt-3 space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <dt className="text-muted-foreground">Provider</dt>
-                    <dd className="font-semibold">
-                      {method === "cbe" ? "Commercial Bank of Ethiopia" : "Telebirr"}
-                    </dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt className="text-muted-foreground">Account</dt>
-                    <dd className="font-mono-data font-bold">{account.account_number}</dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt className="text-muted-foreground">Account name</dt>
-                    <dd className="font-semibold">{account.account_name}</dd>
-                  </div>
-                </dl>
-              ) : (
-                <p className="mt-2 text-sm text-muted-foreground">
-                  No active {method === "cbe" ? "CBE" : "Telebirr"} account configured for this
-                  pharmacy{online ? "" : " (offline — showing cached accounts)"}.
-                </p>
-              )}
-            </div>
-          )}
-
-          <button
-            onClick={onConfirm}
-            disabled={charging}
-            className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-primary text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
-          >
-            <Check className="h-4 w-4" />
-            {charging ? "Committing sale…" : "Confirm payment & commit sale"}
-          </button>
-        </div>
-        <div className="h-[env(safe-area-inset-bottom)]" />
-      </div>
-    </div>
   );
 }
