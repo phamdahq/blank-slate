@@ -3,7 +3,9 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, Plus, Search, WifiOff } from "lucide-react";
 import { AppShellWithSlot } from "@/components/app-shell";
 import { RequireRole } from "@/components/require-role";
-import { searchGlobalProducts, OfflineError } from "@/db/catalog-remote";
+import { OfflineError } from "@/db/catalog-remote";
+import { searchAvailableGlobalProducts } from "@/services/inventory/catalogService";
+import { useSession } from "@/hooks/use-session";
 import type { Product } from "@/db/dexie";
 import { useOnline } from "@/hooks/use-online";
 import { cn } from "@/lib/utils";
@@ -32,23 +34,25 @@ function AddStockPicker() {
 
 function AddStockPickerView() {
   const online = useOnline();
+  const { pharmacyId } = useSession();
   const [q, setQ] = useState("");
   const [results, setResults] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Products come from the upstream Supabase catalog only — custom items
-  // cannot be created here.
+  // Products come from the upstream Supabase catalog only, minus items
+  // already stocked by this pharmacy.
   useEffect(() => {
+    if (!pharmacyId) return;
     let cancelled = false;
     const t = setTimeout(() => {
       setLoading(true);
       setError(null);
-      void searchGlobalProducts(q)
+      void searchAvailableGlobalProducts(pharmacyId, q)
         .then((rows) => {
           if (!cancelled) setResults(rows);
         })
-        .catch((err) => {
+        .catch((err: unknown) => {
           if (cancelled) return;
           setResults([]);
           setError(
@@ -67,7 +71,7 @@ function AddStockPickerView() {
       cancelled = true;
       clearTimeout(t);
     };
-  }, [q, online]);
+  }, [q, online, pharmacyId]);
 
   return (
     <AppShellWithSlot hideBell>

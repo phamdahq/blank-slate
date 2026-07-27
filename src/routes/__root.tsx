@@ -14,6 +14,8 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "../db/supabase";
 import { Toaster } from "@/components/ui/sonner";
+import { useSession } from "@/hooks/use-session";
+import { pullAll, startRealtimeSync } from "@/services/sync/realtimeService";
 
 
 const PUBLIC_ROUTES = new Set([
@@ -203,10 +205,31 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <RealtimeBootstrap />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
       <Toaster />
     </QueryClientProvider>
   );
+}
+
+/**
+ * Kicks off the startup pull + Supabase realtime subscriptions for the
+ * current pharmacy. Re-runs whenever the active pharmacy changes.
+ */
+function RealtimeBootstrap() {
+  const { pharmacyId } = useSession();
+  useEffect(() => {
+    if (!pharmacyId) return;
+    void pullAll(pharmacyId);
+    const stop = startRealtimeSync(pharmacyId);
+    const onOnline = () => void pullAll(pharmacyId);
+    window.addEventListener("online", onOnline);
+    return () => {
+      stop();
+      window.removeEventListener("online", onOnline);
+    };
+  }, [pharmacyId]);
+  return null;
 }
 

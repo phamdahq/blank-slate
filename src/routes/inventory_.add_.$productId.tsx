@@ -9,16 +9,23 @@ import {
   Save,
   Lock,
 } from "lucide-react";
+import { z } from "zod";
 import { AppShellWithSlot } from "@/components/app-shell";
 import { RequireRole } from "@/components/require-role";
 import { useSession } from "@/hooks/use-session";
 import { fetchGlobalProduct, OfflineError } from "@/db/catalog-remote";
-import { inventoryRepo } from "@/db/repositories";
+import { db } from "@/db/dexie";
+import { addFirstBatch, addAdditionalBatch } from "@/services/inventory/stockService";
 import { LOW_STOCK_LEVEL } from "@/lib/catalog";
 import type { Product } from "@/db/dexie";
 import { cn } from "@/lib/utils";
 
+const searchSchema = z.object({
+  mode: z.enum(["first", "batch"]).optional().default("first"),
+});
+
 export const Route = createFileRoute("/inventory_/add_/$productId")({
+  validateSearch: searchSchema,
   head: () => ({
     meta: [
       { title: "Add Stock · PharmaCore" },
@@ -43,10 +50,12 @@ function AddMedicinePage() {
 function AddMedicineForm() {
   const router = useRouter();
   const { productId } = Route.useParams();
+  const { mode } = Route.useSearch();
   const { pharmacyId } = useSession();
+  const isBatchMode = mode === "batch";
 
-  // The product MUST exist upstream in Supabase. Custom/unknown items are
-  // rejected — this validation step requires connectivity by design.
+  // In FIRST mode we validate upstream (requires internet). In BATCH mode
+  // the product is already stocked locally so Dexie has the metadata.
   const [med, setMed] = useState<Product | null>(null);
   const [validating, setValidating] = useState(true);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -66,6 +75,24 @@ function AddMedicineForm() {
     let cancelled = false;
     setValidating(true);
     setValidationError(null);
+
+    if (isBatchMode) {
+      // Offline-capable: read the product from the local Dexie mirror.
+      void db.products
+        .get(productId)
+        .then((p) => {
+          if (cancelled) return;
+          if (!p) setValidationError("This product is not in your local inventory.");
+          setMed(p ?? null);
+        })
+        .finally(() => {
+          if (!cancelled) setValidating(false);
+        });
+      return () => {
+        cancelled = true;
+      };
+    }
+
     void fetchGlobalProduct(productId)
       .then((p) => {
         if (cancelled) return;
@@ -88,7 +115,7 @@ function AddMedicineForm() {
     return () => {
       cancelled = true;
     };
-  }, [productId]);
+  }, [productId, isBatchMode]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -97,24 +124,36 @@ function AddMedicineForm() {
       return;
     }
     setSaveError(null);
+    const row = {
+      id: crypto.randomUUID(),
+      pharmacy_id: pharmacyId,
+      product_id: med.id,
+      batch_number: batchNumber.trim(),
+      supplier_name: supplier.trim() || null,
+      expiry_date: expiry,
+      quantity: Number(quantity) || 0,
+      purchase_cost: Number(cost) || 0,
+      selling_price: Number(price) || 0,
+      created_at: new Date().toISOString(),
+    };
     try {
-      // Local-first write; the outbox syncs to Supabase now or when back online.
-      await inventoryRepo.addBatch({
-        id: crypto.randomUUID(),
-        pharmacy_id: pharmacyId,
-        product_id: med.id,
-        batch_number: batchNumber.trim(),
-        supplier_name: supplier.trim() || null,
-        expiry_date: expiry,
-        quantity: Number(quantity) || 0,
-        purchase_cost: Number(cost) || 0,
-        selling_price: Number(price) || 0,
-        created_at: new Date().toISOString(),
-      });
+      if (isBatchMode) {
+        // Offline-capable: Dexie + outbox.
+        await addAdditionalBatch(row);
+      } else {
+        // First batch for this product in this pharmacy → requires internet.
+        await addFirstBatch(row);
+      }
       setSaved(true);
       setTimeout(() => router.navigate({ to: "/inventory" }), 700);
     } catch (err) {
-      setSaveError(err instanceof Error ? err.message : "Could not save this batch.");
+      setSaveError(
+        err instanceof OfflineError
+          ? "You must be online to add a product to inventory for the first time."
+          : err instanceof Error
+            ? err.message
+            : "Could not save this batch.",
+      );
     }
   }
 
