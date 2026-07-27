@@ -119,22 +119,16 @@ function PosView() {
   const itemCount = lines.reduce((s, x) => s + x.line.qty, 0);
   const [charging, setCharging] = useState(false);
   const [receipt, setReceipt] = useState<string | null>(null);
-  const [payOpen, setPayOpen] = useState(false);
 
-  function handleCharge() {
+  async function handleCharge() {
     if (lines.length === 0 || charging) return;
     if (!pharmacyId) {
       alert("No pharmacy is linked to your account.");
       return;
     }
-    setPayOpen(true);
-  }
-
-  async function confirmPayment() {
-    if (!pharmacyId || charging) return;
     setCharging(true);
     try {
-      const result = await salesRepo.checkout(
+      const result = await salesService.checkout(
         pharmacyId,
         lines.map((x) => ({
           product_id: x.med.id,
@@ -144,7 +138,6 @@ function PosView() {
         })),
       );
       setCart([]);
-      setPayOpen(false);
       setMobileCartOpen(false);
       setReceipt(result.transaction_id);
       setTimeout(() => setReceipt(null), 2500);
@@ -155,6 +148,7 @@ function PosView() {
       setCharging(false);
     }
   }
+
 
 
   const mobileCartButton = (
