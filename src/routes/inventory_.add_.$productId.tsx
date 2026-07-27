@@ -9,16 +9,23 @@ import {
   Save,
   Lock,
 } from "lucide-react";
+import { z } from "zod";
 import { AppShellWithSlot } from "@/components/app-shell";
 import { RequireRole } from "@/components/require-role";
 import { useSession } from "@/hooks/use-session";
 import { fetchGlobalProduct, OfflineError } from "@/db/catalog-remote";
-import { inventoryRepo } from "@/db/repositories";
+import { db } from "@/db/dexie";
+import { addFirstBatch, addAdditionalBatch } from "@/services/inventory/stockService";
 import { LOW_STOCK_LEVEL } from "@/lib/catalog";
 import type { Product } from "@/db/dexie";
 import { cn } from "@/lib/utils";
 
+const searchSchema = z.object({
+  mode: z.enum(["first", "batch"]).optional().default("first"),
+});
+
 export const Route = createFileRoute("/inventory_/add_/$productId")({
+  validateSearch: searchSchema,
   head: () => ({
     meta: [
       { title: "Add Stock · PharmaCore" },
