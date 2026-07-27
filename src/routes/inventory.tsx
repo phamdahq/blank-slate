@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Search,
   ScanLine,
@@ -7,6 +7,7 @@ import {
   TrendingDown,
   AlertTriangle,
   Plus,
+  PackagePlus,
 } from "lucide-react";
 
 import { AppShellWithSlot } from "@/components/app-shell";
@@ -188,13 +189,7 @@ function InventoryView() {
                       ${m.price.toFixed(2)}
                     </td>
                     <td className="px-3 py-4 text-right">
-                      <button
-                        type="button"
-                        aria-label="Row actions"
-                        className="grid h-8 w-8 place-items-center rounded-md text-muted-foreground hover:bg-surface-mid hover:text-foreground"
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </button>
+                      <RowActions productId={m.id} />
                     </td>
                   </tr>
                 );
