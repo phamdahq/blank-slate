@@ -3,7 +3,8 @@
  * `platform_admins`-derived sessions via the shared `loadProfile`.
  */
 import { profileRepo } from "@/db/pharmacy-config";
-import { loadProfile, resolvePostLoginTarget, clearLocalSession } from "@/db/session";
+import { loadProfile, resolvePostLoginTarget } from "@/db/session";
+import { clearLocalSession } from "@/db/pharmacy-config";
 import type { UserRow } from "@/db/dexie";
 import { supabase } from "@/lib/supabase";
 
