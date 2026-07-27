@@ -1,8 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
-  Activity,
+  Building2,
+  Check,
   CheckCircle2,
   CreditCard,
   Landmark,
@@ -11,6 +12,7 @@ import {
   Settings2,
   Sparkles,
   UserCog,
+  Wallet,
   X,
 } from "lucide-react";
 import { RequireRole } from "@/components/require-role";
@@ -22,7 +24,6 @@ import { supabase } from "@/db/supabase";
 import {
   DEFAULT_SETTINGS,
   clearLocalSession,
-  paymentAccountsRepo,
   profileRepo,
   settingsRepo,
 } from "@/db/pharmacy-config";
