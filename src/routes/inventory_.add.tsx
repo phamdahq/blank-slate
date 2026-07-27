@@ -34,23 +34,25 @@ function AddStockPicker() {
 
 function AddStockPickerView() {
   const online = useOnline();
+  const { pharmacyId } = useSession();
   const [q, setQ] = useState("");
   const [results, setResults] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Products come from the upstream Supabase catalog only — custom items
-  // cannot be created here.
+  // Products come from the upstream Supabase catalog only, minus items
+  // already stocked by this pharmacy.
   useEffect(() => {
+    if (!pharmacyId) return;
     let cancelled = false;
     const t = setTimeout(() => {
       setLoading(true);
       setError(null);
-      void searchGlobalProducts(q)
+      void searchAvailableGlobalProducts(pharmacyId, q)
         .then((rows) => {
           if (!cancelled) setResults(rows);
         })
-        .catch((err) => {
+        .catch((err: unknown) => {
           if (cancelled) return;
           setResults([]);
           setError(
@@ -69,7 +71,7 @@ function AddStockPickerView() {
       cancelled = true;
       clearTimeout(t);
     };
-  }, [q, online]);
+  }, [q, online, pharmacyId]);
 
   return (
     <AppShellWithSlot hideBell>
