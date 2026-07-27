@@ -22,6 +22,28 @@ let pending = false;
 type Listener = (state: SyncState) => void;
 const listeners = new Set<Listener>();
 
+export type SyncEvent =
+  | {
+      kind: "sale-voided-insufficient-stock";
+      sale_id: string;
+      product_id: string;
+      batch_id: string;
+      quantity: number;
+    }
+  | { kind: "sale-voided-other"; sale_id: string; message: string };
+
+type EventListener = (e: SyncEvent) => void;
+const eventListeners = new Set<EventListener>();
+
+export function subscribeSyncEvents(l: EventListener): () => void {
+  eventListeners.add(l);
+  return () => eventListeners.delete(l);
+}
+
+function emitEvent(e: SyncEvent) {
+  for (const l of eventListeners) l(e);
+}
+
 export interface SyncState {
   online: boolean;
   draining: boolean;
@@ -44,6 +66,7 @@ export function subscribeSync(l: Listener): () => void {
   l(state);
   return () => listeners.delete(l);
 }
+
 
 export function getSyncState() {
   return state;
