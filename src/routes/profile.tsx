@@ -1,8 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
-  Activity,
+  Building2,
+  Check,
   CheckCircle2,
   CreditCard,
   Landmark,
@@ -11,6 +12,7 @@ import {
   Settings2,
   Sparkles,
   UserCog,
+  Wallet,
   X,
 } from "lucide-react";
 import { RequireRole } from "@/components/require-role";
@@ -22,7 +24,6 @@ import { supabase } from "@/db/supabase";
 import {
   DEFAULT_SETTINGS,
   clearLocalSession,
-  paymentAccountsRepo,
   profileRepo,
   settingsRepo,
 } from "@/db/pharmacy-config";
@@ -68,22 +69,15 @@ function ProfilePageView() {
     () => (pharmacyId ? settingsRepo.local(pharmacyId) : undefined),
     [pharmacyId],
   );
-  const accounts = useLiveQuery(
-    () => (pharmacyId ? paymentAccountsRepo.local(pharmacyId) : []),
-    [pharmacyId],
-    [],
-  );
   const pharmacy = useLiveQuery(
     () => (pharmacyId ? db.pharmacies.get(pharmacyId) : undefined),
     [pharmacyId],
   );
-  const queued = useLiveQuery(() => db.outbox.count(), [], 0);
 
   // Refresh from Supabase whenever we come online.
   useEffect(() => {
     if (!pharmacyId) return;
     void settingsRepo.refresh(pharmacyId);
-    void paymentAccountsRepo.refresh(pharmacyId);
   }, [pharmacyId, online]);
 
   // --- Profile edit -------------------------------------------------------
@@ -159,7 +153,6 @@ function ProfilePageView() {
               <h1 className="text-2xl font-bold leading-tight tracking-tight">{fullName}</h1>
               <p className="text-sm text-muted-foreground">
                 {(role ?? "member").replace(/^\w/, (c) => c.toUpperCase())}
-                {pharmacy?.name ? ` · ${pharmacy.name}` : ""}
               </p>
             </div>
           </div>
@@ -185,7 +178,27 @@ function ProfilePageView() {
           </div>
         </header>
 
-        <div className="mt-6 grid gap-5 lg:grid-cols-3">
+        {/* Pharmacy banner */}
+        <section className="mt-5 flex items-center gap-4 rounded-xl border border-border bg-gradient-to-br from-primary-soft/70 to-surface px-5 py-4 shadow-elev-sm">
+          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground">
+            <Building2 className="h-5 w-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="font-mono-data text-[11px] font-bold uppercase tracking-wider text-primary">
+              Pharmacy
+            </p>
+            <h2 className="truncate text-xl font-bold leading-tight">
+              {pharmacy?.name ?? "—"}
+            </h2>
+            {(pharmacy?.city || pharmacy?.country) && (
+              <p className="text-xs text-muted-foreground">
+                {[pharmacy?.city, pharmacy?.country].filter(Boolean).join(", ")}
+              </p>
+            )}
+          </div>
+        </section>
+
+        <div className="mt-6 grid gap-5 lg:grid-cols-2">
           {/* Account details */}
           <Card icon={UserCog} title="Account Details">
             <form onSubmit={saveProfile} className="space-y-3">
@@ -214,11 +227,11 @@ function ProfilePageView() {
                 <Save className="h-4 w-4" />
                 {savedProfile ? "Saved locally" : "Save changes"}
               </button>
-              {!online && (
-                <p className="text-[11px] text-muted-foreground">
-                  Saved offline — will sync when you reconnect.
-                </p>
-              )}
+              <p className="text-[11px] text-muted-foreground">
+                {online
+                  ? "Saved locally and synced to the cloud."
+                  : "Saved offline — will sync when you reconnect."}
+              </p>
             </form>
           </Card>
 
@@ -252,80 +265,44 @@ function ProfilePageView() {
               )}
             </div>
           </Card>
-
-          {/* Sync health */}
-          <Card icon={Activity} title="System Health">
-            <ul className="space-y-2.5 text-sm">
-              <Health label="Connection" value={online ? "Online" : "Offline"} tone={online ? "success" : "warning"} />
-              <Health
-                label="Pending sync"
-                value={`${queued ?? 0} queued`}
-                tone={(queued ?? 0) > 0 ? "warning" : "success"}
-              />
-              <Health label="Local cache" value="Active" tone="success" />
-              <Health
-                label="Payment accounts"
-                value={`${accounts?.length ?? 0} configured`}
-                tone={(accounts?.length ?? 0) > 0 ? "success" : "warning"}
-              />
-            </ul>
-          </Card>
         </div>
 
         {/* Subscription */}
-        <section className="mt-6 grid gap-5 lg:grid-cols-3">
+        <section className="mt-6">
           <Card icon={Sparkles} title="Current Plan">
-            <div className="flex items-center gap-2">
-              <span className="rounded-md bg-primary-soft px-2 py-0.5 font-mono-data text-[11px] font-bold uppercase tracking-wider text-primary">
-                {(pharmacy?.tier ?? "basic").toUpperCase()} plan
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {pharmacy?.next_payment_due ? `Renews ${pharmacy.next_payment_due}` : "Trial"}
-              </span>
-            </div>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Status: {pharmacy?.subscription_status ?? "trial"}
-            </p>
-            <button
-              onClick={() => setPayOpen(true)}
-              className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-primary text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
-            >
-              <CreditCard className="h-4 w-4" /> Pay Now
-            </button>
-          </Card>
-
-          <div className="lg:col-span-2">
-            <Card icon={Landmark} title="Pharmacy Payment Accounts">
-              {accounts && accounts.length > 0 ? (
-                <ul className="space-y-2">
-                  {accounts.map((a) => (
-                    <li
-                      key={a.id}
-                      className="flex items-center justify-between rounded-md border border-border bg-surface-low px-3 py-2.5 text-sm"
-                    >
-                      <span className="font-semibold uppercase">
-                        {a.provider === "cbe" ? "CBE" : "Telebirr"}
-                      </span>
-                      <span className="text-right">
-                        <span className="block font-mono-data font-bold">{a.account_number}</span>
-                        <span className="block text-[11px] text-muted-foreground">
-                          {a.account_name}
-                        </span>
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  No active Telebirr or CBE account configured for this pharmacy yet.
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="rounded-md bg-primary-soft px-2 py-0.5 font-mono-data text-[11px] font-bold uppercase tracking-wider text-primary">
+                    {(pharmacy?.tier ?? "basic").toUpperCase()} plan
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {pharmacy?.next_payment_due
+                      ? `Renews ${pharmacy.next_payment_due}`
+                      : "Trial"}
+                  </span>
+                </div>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Status: {pharmacy?.subscription_status ?? "trial"}
                 </p>
-              )}
-            </Card>
-          </div>
+              </div>
+              <button
+                onClick={() => setPayOpen(true)}
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-primary px-6 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
+              >
+                <CreditCard className="h-4 w-4" /> Pay Now
+              </button>
+            </div>
+          </Card>
         </section>
       </div>
 
-      {payOpen && <PaymentSheet onClose={() => setPayOpen(false)} />}
+      {payOpen && (
+        <PaymentSheet
+          tier={pharmacy?.tier ?? "basic"}
+          onClose={() => setPayOpen(false)}
+        />
+      )}
     </AppShell>
   );
 }
@@ -356,7 +333,7 @@ function Card({
   title,
   children,
 }: {
-  icon: typeof Activity;
+  icon: React.ComponentType<{ className?: string }>;
   title: string;
   children: React.ReactNode;
 }) {
@@ -372,27 +349,6 @@ function Card({
       </header>
       {children}
     </section>
-  );
-}
-
-function Health({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: string;
-  tone: "success" | "warning" | "danger";
-}) {
-  const dot = { success: "bg-success", warning: "bg-warning", danger: "bg-danger" }[tone];
-  return (
-    <li className="flex items-center justify-between">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="inline-flex items-center gap-2 font-mono-data text-xs font-semibold text-foreground">
-        <span className={cn("h-1.5 w-1.5 rounded-full", dot)} />
-        {value}
-      </span>
-    </li>
   );
 }
 
@@ -453,12 +409,31 @@ function RuleSlider({
   );
 }
 
-function PaymentSheet({ onClose }: { onClose: () => void }) {
+// ---------- Subscription payment modal (POS-style) ----------
+
+type PayMethod = "cash" | "cbe" | "telebirr";
+
+const TIER_AMOUNTS: Record<string, number> = {
+  basic: 49,
+  pro: 99,
+  enterprise: 129,
+};
+
+function PaymentSheet({
+  tier,
+  onClose,
+}: {
+  tier: string;
+  onClose: () => void;
+}) {
+  const amount = TIER_AMOUNTS[tier] ?? TIER_AMOUNTS.basic;
   const [cfg, setCfg] = useState<Awaited<
     ReturnType<typeof import("@/services/platformConfigService").getPlatformConfig>
   > | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [method, setMethod] = useState<PayMethod | null>(null);
+  const [confirmed, setConfirmed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -466,12 +441,11 @@ function PaymentSheet({ onClose }: { onClose: () => void }) {
     import("@/services/platformConfigService")
       .then(({ getPlatformConfig }) => getPlatformConfig())
       .then((data) => {
-        if (cancelled) return;
-        setCfg(data);
+        if (!cancelled) setCfg(data);
       })
       .catch((err) => {
-        if (cancelled) return;
-        setError(err instanceof Error ? err.message : "Failed to load payment details");
+        if (!cancelled)
+          setError(err instanceof Error ? err.message : "Failed to load payment details");
       })
       .finally(() => !cancelled && setLoading(false));
     return () => {
@@ -479,15 +453,28 @@ function PaymentSheet({ onClose }: { onClose: () => void }) {
     };
   }, []);
 
+  const details = useMemo(() => {
+    if (!cfg || !method || method === "cash") return null;
+    if (method === "cbe")
+      return { label: "CBE Account", value: cfg.cbe_account_number ?? "—" };
+    return { label: "Telebirr", value: cfg.telebirr ?? "—" };
+  }, [cfg, method]);
+
+  const methods: Array<{ id: PayMethod; label: string; icon: React.ComponentType<{ className?: string }> }> = [
+    { id: "cash", label: "Cash", icon: Wallet },
+    { id: "cbe", label: "CBE", icon: Landmark },
+    { id: "telebirr", label: "Telebirr", icon: CreditCard },
+  ];
+
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-background/60 backdrop-blur-sm sm:items-center">
       <div className="absolute inset-0" onClick={onClose} aria-hidden />
-      <div className="relative w-full max-w-md rounded-t-2xl border-x border-t border-border bg-surface shadow-elev-lg sm:rounded-2xl sm:border">
-        <header className="flex items-center justify-between border-b border-border px-5 py-4">
+      <div className="relative w-full max-w-lg rounded-t-2xl border-x border-t border-border bg-surface shadow-elev-lg sm:rounded-2xl sm:border">
+        <header className="flex items-start justify-between border-b border-border px-5 py-4">
           <div>
             <h3 className="text-base font-bold">Subscription payment</h3>
             <p className="text-xs text-muted-foreground">
-              Transfer using either destination below, then contact support with the reference.
+              Choose how you want to settle this cycle.
             </p>
           </div>
           <button
@@ -498,43 +485,104 @@ function PaymentSheet({ onClose }: { onClose: () => void }) {
             <X className="h-4 w-4" />
           </button>
         </header>
+
+        {/* Total */}
+        <div className="border-b border-border px-5 py-5 text-center">
+          <p className="font-mono-data text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+            Total amount due
+          </p>
+          <p className="mt-1 font-mono-data text-4xl font-bold tracking-tight text-foreground">
+            ${amount.toFixed(2)}
+          </p>
+          <p className="mt-1 text-[11px] uppercase tracking-wider text-muted-foreground">
+            {tier} plan
+          </p>
+        </div>
+
         <div className="space-y-4 px-5 py-5">
+          {/* Method cards */}
+          <div className="grid grid-cols-3 gap-2">
+            {methods.map((m) => {
+              const active = method === m.id;
+              const Icon = m.icon;
+              return (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => {
+                    setMethod(m.id);
+                    setConfirmed(false);
+                  }}
+                  className={cn(
+                    "flex flex-col items-center justify-center gap-1.5 rounded-lg border p-3 text-xs font-semibold transition-colors",
+                    active
+                      ? "border-primary bg-primary-soft text-primary"
+                      : "border-border bg-surface-low text-foreground hover:bg-surface-mid",
+                  )}
+                >
+                  <Icon className="h-5 w-5" />
+                  {m.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Account details */}
           {loading && (
             <p className="text-sm text-muted-foreground">Loading payment details…</p>
           )}
-          {error && !loading && (
-            <p className="text-sm text-danger">{error}</p>
-          )}
-          {!loading && !error && !cfg && (
-            <p className="text-sm text-muted-foreground">
-              Payment details are not configured yet. Please contact Phamda support.
-            </p>
-          )}
-          {!loading && !error && cfg && (
-            <>
-              <PayRow
-                icon={Landmark}
-                label="CBE Account"
-                value={cfg.cbe_account_number ?? "—"}
-              />
-              <PayRow icon={CreditCard} label="Telebirr" value={cfg.telebirr ?? "—"} />
-              <PayRow
-                icon={UserCog}
-                label="Account name"
-                value={cfg.payment_full_name ?? "—"}
-              />
-              {cfg.support_phone_number && (
-                <p className="text-xs text-muted-foreground">
+          {error && !loading && <p className="text-sm text-danger">{error}</p>}
+          {!loading && !error && details && (
+            <div className="rounded-lg border border-border bg-surface-low p-4">
+              <p className="font-mono-data text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                {details.label}
+              </p>
+              <p className="mt-1 font-mono-data text-lg font-bold">{details.value}</p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Account name:{" "}
+                <span className="font-semibold text-foreground">
+                  {cfg?.payment_full_name ?? "—"}
+                </span>
+              </p>
+              {cfg?.support_phone_number && (
+                <p className="mt-1 text-[11px] text-muted-foreground">
                   Support: <span className="font-mono-data">{cfg.support_phone_number}</span>
                 </p>
               )}
-            </>
+            </div>
           )}
+          {!loading && !error && method === "cash" && (
+            <div className="rounded-lg border border-border bg-surface-low p-4 text-sm text-muted-foreground">
+              Pay cash directly at the office and keep your receipt for reference.
+            </div>
+          )}
+
+          {/* Confirm */}
           <button
-            onClick={onClose}
-            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-primary text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
+            type="button"
+            disabled={!method}
+            onClick={() => {
+              setConfirmed(true);
+              setTimeout(onClose, 700);
+            }}
+            className={cn(
+              "inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg text-sm font-semibold transition-colors",
+              method
+                ? "bg-primary text-primary-foreground hover:bg-primary-hover"
+                : "cursor-not-allowed bg-surface-mid text-muted-foreground",
+            )}
           >
-            Got it
+            <span
+              className={cn(
+                "grid h-6 w-6 place-items-center rounded-full border-2",
+                confirmed
+                  ? "border-primary-foreground bg-primary-foreground text-primary"
+                  : "border-current",
+              )}
+            >
+              <Check className="h-3.5 w-3.5" />
+            </span>
+            {confirmed ? "Confirmed" : "Confirm"}
           </button>
         </div>
         <div className="h-[env(safe-area-inset-bottom)]" />
@@ -543,23 +591,4 @@ function PaymentSheet({ onClose }: { onClose: () => void }) {
   );
 }
 
-function PayRow({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: typeof Activity;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="flex items-center justify-between rounded-md border border-border bg-surface-low px-3 py-2.5 text-sm">
-      <span className="inline-flex items-center gap-2 text-muted-foreground">
-        <Icon className="h-4 w-4 text-primary" />
-        {label}
-      </span>
-      <span className="font-mono-data font-bold">{value}</span>
-    </div>
-  );
-}
 
