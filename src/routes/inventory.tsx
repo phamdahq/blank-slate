@@ -227,6 +227,45 @@ function InventoryView() {
   );
 }
 
+function RowActions({ productId }: { productId: string }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [open]);
+  return (
+    <div ref={ref} className="relative inline-block text-left">
+      <button
+        type="button"
+        aria-label="Row actions"
+        onClick={() => setOpen((v) => !v)}
+        className="grid h-8 w-8 place-items-center rounded-md text-muted-foreground hover:bg-surface-mid hover:text-foreground"
+      >
+        <MoreVertical className="h-4 w-4" />
+      </button>
+      {open && (
+        <div className="absolute right-0 z-20 mt-1 w-44 overflow-hidden rounded-md border border-border bg-surface shadow-elev-md">
+          <Link
+            to="/inventory/add/$productId"
+            params={{ productId }}
+            search={{ mode: "batch" }}
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-2 px-3 py-2 text-sm text-foreground transition-colors hover:bg-surface-low"
+          >
+            <PackagePlus className="h-4 w-4 text-primary" />
+            Add Batch
+          </Link>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Th({
   children,
   align,
