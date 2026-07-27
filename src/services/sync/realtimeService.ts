@@ -58,23 +58,19 @@ async function pullSales(pharmacyId: string): Promise<void> {
 
 // ---------------- Realtime channels ----------------
 
-type Change<T> = RealtimePostgresChangesPayload<T>;
+type AnyRow = { id?: string; [k: string]: unknown };
 
-function makeHandler<T extends { id?: string }>(
-  table: "products" | "batches" | "sales",
-) {
-  return async (payload: Change<T>) => {
-    const row = (payload.new ?? {}) as T & { id?: string };
-    const oldRow = (payload.old ?? {}) as T & { id?: string };
+function makeHandler(table: "products" | "batches" | "sales") {
+  return async (payload: RealtimePostgresChangesPayload<AnyRow>) => {
+    const row = (payload.new ?? {}) as AnyRow;
+    const oldRow = (payload.old ?? {}) as AnyRow;
     try {
       if (payload.eventType === "DELETE") {
         const id = oldRow.id;
         if (!id) return;
-        // @ts-expect-error narrow table by literal string
-        await db[table].delete(id);
-      } else {
-        // @ts-expect-error narrow table by literal string
-        await db[table].put(row);
+        await (db[table] as unknown as { delete: (k: string) => Promise<void> }).delete(id);
+      } else if (row.id) {
+        await (db[table] as unknown as { put: (r: unknown) => Promise<unknown> }).put(row);
       }
     } catch (err) {
       // Realtime deltas are best-effort — never crash the UI.
