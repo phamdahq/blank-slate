@@ -148,15 +148,28 @@ function RootComponent() {
   useEffect(() => {
     // Boot the offline-first sync engine on the client only.
     let cancelled = false;
+    let unsubEvents: (() => void) | undefined;
     void (async () => {
-      const { startSyncEngine } = await import("../db/sync");
+      const { startSyncEngine, subscribeSyncEvents } = await import("../db/sync");
       if (cancelled) return;
       startSyncEngine();
+      unsubEvents = subscribeSyncEvents((e) => {
+        if (e.kind === "sale-voided-insufficient-stock") {
+          toast.error("Sale voided — out of stock", {
+            description: `A queued sale of ${e.quantity} unit(s) was rejected by the server because the batch no longer has enough stock. Local inventory has been restored.`,
+          });
+        } else if (e.kind === "sale-voided-other") {
+          toast.error("Sale voided", { description: e.message });
+        }
+      });
     })();
     return () => {
       cancelled = true;
+      unsubEvents?.();
     };
   }, []);
+
+
 
 
   // Client-side auth guard: redirect unauthenticated users to /login
