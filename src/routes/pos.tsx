@@ -21,8 +21,7 @@ import { useSession } from "@/hooks/use-session";
 import { useOnline } from "@/hooks/use-online";
 import { useCatalog, type Medication, type Batch } from "@/lib/catalog";
 import { cn } from "@/lib/utils";
-import { salesRepo } from "@/db/repositories";
-import { paymentAccountsRepo } from "@/db/pharmacy-config";
+import * as salesService from "@/services/pos/salesService";
 
 
 
