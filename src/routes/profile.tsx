@@ -153,7 +153,6 @@ function ProfilePageView() {
               <h1 className="text-2xl font-bold leading-tight tracking-tight">{fullName}</h1>
               <p className="text-sm text-muted-foreground">
                 {(role ?? "member").replace(/^\w/, (c) => c.toUpperCase())}
-                {pharmacy?.name ? ` · ${pharmacy.name}` : ""}
               </p>
             </div>
           </div>
@@ -179,7 +178,27 @@ function ProfilePageView() {
           </div>
         </header>
 
-        <div className="mt-6 grid gap-5 lg:grid-cols-3">
+        {/* Pharmacy banner */}
+        <section className="mt-5 flex items-center gap-4 rounded-xl border border-border bg-gradient-to-br from-primary-soft/70 to-surface px-5 py-4 shadow-elev-sm">
+          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground">
+            <Building2 className="h-5 w-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="font-mono-data text-[11px] font-bold uppercase tracking-wider text-primary">
+              Pharmacy
+            </p>
+            <h2 className="truncate text-xl font-bold leading-tight">
+              {pharmacy?.name ?? "—"}
+            </h2>
+            {(pharmacy?.city || pharmacy?.country) && (
+              <p className="text-xs text-muted-foreground">
+                {[pharmacy?.city, pharmacy?.country].filter(Boolean).join(", ")}
+              </p>
+            )}
+          </div>
+        </section>
+
+        <div className="mt-6 grid gap-5 lg:grid-cols-2">
           {/* Account details */}
           <Card icon={UserCog} title="Account Details">
             <form onSubmit={saveProfile} className="space-y-3">
@@ -208,11 +227,11 @@ function ProfilePageView() {
                 <Save className="h-4 w-4" />
                 {savedProfile ? "Saved locally" : "Save changes"}
               </button>
-              {!online && (
-                <p className="text-[11px] text-muted-foreground">
-                  Saved offline — will sync when you reconnect.
-                </p>
-              )}
+              <p className="text-[11px] text-muted-foreground">
+                {online
+                  ? "Saved locally and synced to the cloud."
+                  : "Saved offline — will sync when you reconnect."}
+              </p>
             </form>
           </Card>
 
@@ -246,80 +265,44 @@ function ProfilePageView() {
               )}
             </div>
           </Card>
-
-          {/* Sync health */}
-          <Card icon={Activity} title="System Health">
-            <ul className="space-y-2.5 text-sm">
-              <Health label="Connection" value={online ? "Online" : "Offline"} tone={online ? "success" : "warning"} />
-              <Health
-                label="Pending sync"
-                value={`${queued ?? 0} queued`}
-                tone={(queued ?? 0) > 0 ? "warning" : "success"}
-              />
-              <Health label="Local cache" value="Active" tone="success" />
-              <Health
-                label="Payment accounts"
-                value={`${accounts?.length ?? 0} configured`}
-                tone={(accounts?.length ?? 0) > 0 ? "success" : "warning"}
-              />
-            </ul>
-          </Card>
         </div>
 
         {/* Subscription */}
-        <section className="mt-6 grid gap-5 lg:grid-cols-3">
+        <section className="mt-6">
           <Card icon={Sparkles} title="Current Plan">
-            <div className="flex items-center gap-2">
-              <span className="rounded-md bg-primary-soft px-2 py-0.5 font-mono-data text-[11px] font-bold uppercase tracking-wider text-primary">
-                {(pharmacy?.tier ?? "basic").toUpperCase()} plan
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {pharmacy?.next_payment_due ? `Renews ${pharmacy.next_payment_due}` : "Trial"}
-              </span>
-            </div>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Status: {pharmacy?.subscription_status ?? "trial"}
-            </p>
-            <button
-              onClick={() => setPayOpen(true)}
-              className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-primary text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
-            >
-              <CreditCard className="h-4 w-4" /> Pay Now
-            </button>
-          </Card>
-
-          <div className="lg:col-span-2">
-            <Card icon={Landmark} title="Pharmacy Payment Accounts">
-              {accounts && accounts.length > 0 ? (
-                <ul className="space-y-2">
-                  {accounts.map((a) => (
-                    <li
-                      key={a.id}
-                      className="flex items-center justify-between rounded-md border border-border bg-surface-low px-3 py-2.5 text-sm"
-                    >
-                      <span className="font-semibold uppercase">
-                        {a.provider === "cbe" ? "CBE" : "Telebirr"}
-                      </span>
-                      <span className="text-right">
-                        <span className="block font-mono-data font-bold">{a.account_number}</span>
-                        <span className="block text-[11px] text-muted-foreground">
-                          {a.account_name}
-                        </span>
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  No active Telebirr or CBE account configured for this pharmacy yet.
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="rounded-md bg-primary-soft px-2 py-0.5 font-mono-data text-[11px] font-bold uppercase tracking-wider text-primary">
+                    {(pharmacy?.tier ?? "basic").toUpperCase()} plan
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {pharmacy?.next_payment_due
+                      ? `Renews ${pharmacy.next_payment_due}`
+                      : "Trial"}
+                  </span>
+                </div>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Status: {pharmacy?.subscription_status ?? "trial"}
                 </p>
-              )}
-            </Card>
-          </div>
+              </div>
+              <button
+                onClick={() => setPayOpen(true)}
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-primary px-6 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
+              >
+                <CreditCard className="h-4 w-4" /> Pay Now
+              </button>
+            </div>
+          </Card>
         </section>
       </div>
 
-      {payOpen && <PaymentSheet onClose={() => setPayOpen(false)} />}
+      {payOpen && (
+        <PaymentSheet
+          tier={pharmacy?.tier ?? "basic"}
+          onClose={() => setPayOpen(false)}
+        />
+      )}
     </AppShell>
   );
 }
