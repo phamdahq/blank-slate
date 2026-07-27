@@ -16,6 +16,7 @@ import { useSession } from "@/hooks/use-session";
 import { fetchGlobalProduct, OfflineError } from "@/db/catalog-remote";
 import { db } from "@/db/dexie";
 import { addFirstBatch, addAdditionalBatch } from "@/services/inventory/stockService";
+import { latestBatchForProduct } from "@/services/inventoryService";
 import { LOW_STOCK_LEVEL } from "@/lib/catalog";
 import type { Product } from "@/db/dexie";
 import { cn } from "@/lib/utils";
