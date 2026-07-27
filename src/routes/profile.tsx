@@ -69,22 +69,15 @@ function ProfilePageView() {
     () => (pharmacyId ? settingsRepo.local(pharmacyId) : undefined),
     [pharmacyId],
   );
-  const accounts = useLiveQuery(
-    () => (pharmacyId ? paymentAccountsRepo.local(pharmacyId) : []),
-    [pharmacyId],
-    [],
-  );
   const pharmacy = useLiveQuery(
     () => (pharmacyId ? db.pharmacies.get(pharmacyId) : undefined),
     [pharmacyId],
   );
-  const queued = useLiveQuery(() => db.outbox.count(), [], 0);
 
   // Refresh from Supabase whenever we come online.
   useEffect(() => {
     if (!pharmacyId) return;
     void settingsRepo.refresh(pharmacyId);
-    void paymentAccountsRepo.refresh(pharmacyId);
   }, [pharmacyId, online]);
 
   // --- Profile edit -------------------------------------------------------
