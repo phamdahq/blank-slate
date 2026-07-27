@@ -10,3 +10,6 @@ export * as salesService from "./pos/salesService";
 export * as catalogService from "./pos/catalogService";
 export * as productService from "./admin/productService";
 export * as payoutService from "./admin/payoutService";
+export * as stockService from "./inventory/stockService";
+export * as inventoryCatalogService from "./inventory/catalogService";
+export * as realtimeService from "./sync/realtimeService";
