@@ -81,10 +81,21 @@ function AddMedicineForm() {
       // Offline-capable: read the product from the local Dexie mirror.
       void db.products
         .get(productId)
-        .then((p) => {
+        .then(async (p) => {
           if (cancelled) return;
-          if (!p) setValidationError("This product is not in your local inventory.");
-          setMed(p ?? null);
+          if (!p) {
+            setValidationError("This product is not in your local inventory.");
+            setMed(null);
+            return;
+          }
+          setMed(p);
+          // Pre-fill from the most recent batch so the user only edits what changes.
+          const last = await latestBatchForProduct(productId);
+          if (cancelled || !last) return;
+          setPrice(last.selling_price ?? "");
+          setCost(last.purchase_cost ?? "");
+          setSupplier(last.supplier_name ?? "");
+          // Reorder level isn't persisted on the Batch model, so keep the default.
         })
         .finally(() => {
           if (!cancelled) setValidating(false);
