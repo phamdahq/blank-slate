@@ -22,6 +22,28 @@ let pending = false;
 type Listener = (state: SyncState) => void;
 const listeners = new Set<Listener>();
 
+export type SyncEvent =
+  | {
+      kind: "sale-voided-insufficient-stock";
+      sale_id: string;
+      product_id: string;
+      batch_id: string;
+      quantity: number;
+    }
+  | { kind: "sale-voided-other"; sale_id: string; message: string };
+
+type EventListener = (e: SyncEvent) => void;
+const eventListeners = new Set<EventListener>();
+
+export function subscribeSyncEvents(l: EventListener): () => void {
+  eventListeners.add(l);
+  return () => eventListeners.delete(l);
+}
+
+function emitEvent(e: SyncEvent) {
+  for (const l of eventListeners) l(e);
+}
+
 export interface SyncState {
   online: boolean;
   draining: boolean;
@@ -44,6 +66,7 @@ export function subscribeSync(l: Listener): () => void {
   l(state);
   return () => listeners.delete(l);
 }
+
 
 export function getSyncState() {
   return state;
@@ -97,14 +120,47 @@ export async function drain(): Promise<void> {
         emit({ lastSyncedAt: Date.now() });
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
+        const permanent = isPermanentFailure(msg);
+
+        if (permanent && entry.op.kind === "sales.insert") {
+          // Server refused this sale (typically insufficient stock because
+          // another device already sold from that batch). Void the local
+          // sale: drop the outbox entry, remove the local sale row, and
+          // restore the stock we optimistically decremented.
+          const sale = entry.op.row;
+          await db.transaction("rw", db.sales, db.batches, db.outbox, async () => {
+            await db.outbox.delete(entry.id!);
+            await db.sales.delete(sale.id);
+            const b = await db.batches.get(sale.batch_id);
+            if (b) {
+              await db.batches.update(sale.batch_id, {
+                quantity: b.quantity + sale.quantity_sold,
+              });
+            }
+          });
+          emitEvent(
+            msg.toLowerCase().includes("insufficient_stock")
+              ? {
+                  kind: "sale-voided-insufficient-stock",
+                  sale_id: sale.id,
+                  product_id: sale.product_id,
+                  batch_id: sale.batch_id,
+                  quantity: sale.quantity_sold,
+                }
+              : { kind: "sale-voided-other", sale_id: sale.id, message: msg },
+          );
+          emit({ lastError: msg });
+          // Continue draining — the next entry may still succeed.
+          continue;
+        }
+
         await db.outbox.update(entry.id, {
           status: "failed",
           attempts: (entry.attempts ?? 0) + 1,
           last_error: msg,
         });
         emit({ lastError: msg });
-        // Stop draining on error to avoid tight retry loops; next online
-        // event / visibility change will retry.
+        // Transient failure: stop draining, retry on next online/visibility.
         break;
       }
     }
@@ -117,6 +173,23 @@ export async function drain(): Promise<void> {
     }
   }
 }
+
+/**
+ * Classify a Supabase / PostgREST error message as permanent (retrying will
+ * never succeed) vs. transient (network blip, auth refresh, RLS race).
+ */
+function isPermanentFailure(msg: string): boolean {
+  const m = msg.toLowerCase();
+  return (
+    m.includes("insufficient_stock") ||
+    m.includes("violates row-level security") ||
+    m.includes("duplicate key value") ||
+    m.includes("check constraint") ||
+    m.includes("violates foreign key")
+  );
+}
+
+
 
 async function applyOp(op: OutboxOp): Promise<void> {
   switch (op.kind) {
