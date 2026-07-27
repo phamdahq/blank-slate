@@ -1,0 +1,190 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * PharmaCore — Clinical Precision Design System
+ * Modern fintech approach for pharmacy operations.
+ * All semantic tokens defined here; never hardcode colors in components.
+ */
+
+:root {
+  --radius: 0.5rem;
+
+  /* Surface tier */
+  --background: #f8f9ff;
+  --surface: #ffffff;
+  --surface-low: #eff4ff;
+  --surface-mid: #e5eeff;
+  --surface-high: #dce9ff;
+  --foreground: #0b1c30;
+  --muted: #eff4ff;
+  --muted-foreground: #424752;
+  --subtle-foreground: #727783;
+
+  /* Brand */
+  --primary: #00478d;
+  --primary-hover: #005db6;
+  --primary-foreground: #ffffff;
+  --primary-soft: #d6e3ff;
+  --primary-soft-foreground: #00478d;
+
+  --secondary: #006a63;
+  --secondary-foreground: #ffffff;
+  --secondary-soft: #79f3e7;
+  --secondary-soft-foreground: #00504a;
+
+  /* Status */
+  --danger: #ba1a1a;
+  --danger-foreground: #ffffff;
+  --danger-soft: #ffdad6;
+  --danger-soft-foreground: #93000a;
+
+  --warning: #9f4300;
+  --warning-soft: #ffdbcb;
+  --warning-soft-foreground: #793100;
+
+  --success: #006a63;
+  --success-soft: #c8f3ec;
+  --success-soft-foreground: #00504a;
+
+  /* Lines */
+  --border: #e2e8f0;
+  --border-strong: #c2c6d4;
+  --input: #e2e8f0;
+  --ring: #005db6;
+
+  /* shadcn aliases */
+  --card: #ffffff;
+  --card-foreground: #0b1c30;
+  --popover: #ffffff;
+  --popover-foreground: #0b1c30;
+  --accent: #eff4ff;
+  --accent-foreground: #00478d;
+  --destructive: #ba1a1a;
+  --destructive-foreground: #ffffff;
+
+  /* Sidebar */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0b1c30;
+  --sidebar-active: #2563eb;
+  --sidebar-active-foreground: #ffffff;
+  --sidebar-border: #e2e8f0;
+
+  /* Elevation */
+  --shadow-sm: 0 1px 2px 0 rgb(11 28 48 / 0.04);
+  --shadow-md: 0 4px 12px -2px rgb(11 28 48 / 0.06);
+  --shadow-lg: 0 8px 24px -4px rgb(11 28 48 / 0.10);
+
+  /* Fonts */
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@theme inline {
+  --radius-sm: 0.125rem;
+  --radius-md: 0.375rem;
+  --radius-lg: var(--radius);
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-full: 9999px;
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-low: var(--surface-low);
+  --color-surface-mid: var(--surface-mid);
+  --color-surface-high: var(--surface-high);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-subtle-foreground: var(--subtle-foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-soft-foreground: var(--primary-soft-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary-soft: var(--secondary-soft);
+  --color-secondary-soft-foreground: var(--secondary-soft-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-soft-foreground: var(--danger-soft-foreground);
+
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-soft-foreground: var(--warning-soft-foreground);
+
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-success-soft-foreground: var(--success-soft-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-active: var(--sidebar-active);
+  --color-sidebar-active-foreground: var(--sidebar-active-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+
+  --shadow-elev-sm: var(--shadow-sm);
+  --shadow-elev-md: var(--shadow-md);
+  --shadow-elev-lg: var(--shadow-lg);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html,
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01", "ss03";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+@utility font-mono-data {
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum", "zero";
+  letter-spacing: -0.01em;
+}
+
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: 9999px;
+  }
+}
