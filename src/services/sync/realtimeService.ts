@@ -87,7 +87,7 @@ export function startRealtimeSync(pharmacyId: string): () => void {
     .on(
       "postgres_changes",
       { event: "*", schema: "public", table: "products" },
-      makeHandler<Product>("products"),
+      makeHandler("products"),
     )
     .on(
       "postgres_changes",
@@ -97,7 +97,7 @@ export function startRealtimeSync(pharmacyId: string): () => void {
         table: "batches",
         filter: `pharmacy_id=eq.${pharmacyId}`,
       },
-      makeHandler<Batch>("batches"),
+      makeHandler("batches"),
     )
     .on(
       "postgres_changes",
@@ -107,7 +107,7 @@ export function startRealtimeSync(pharmacyId: string): () => void {
         table: "sales",
         filter: `pharmacy_id=eq.${pharmacyId}`,
       },
-      makeHandler<SaleRow>("sales"),
+      makeHandler("sales"),
     )
     .subscribe();
 
