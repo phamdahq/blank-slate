@@ -12,14 +12,19 @@
  *   without polling. Returns a cleanup function.
  */
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
-import { db, isBrowser, type Batch, type Product, type SaleRow } from "@/db/dexie";
+import { db, isBrowser, type Batch, type Expense, type Product, type SaleRow } from "@/db/dexie";
 import { supabase } from "@/lib/supabase";
 
 // ---------------- Initial pull ----------------
 
 export async function pullAll(pharmacyId: string): Promise<void> {
   if (!isBrowser || !navigator.onLine) return;
-  await Promise.all([pullProducts(), pullBatches(pharmacyId), pullSales(pharmacyId)]);
+  await Promise.all([
+    pullProducts(),
+    pullBatches(pharmacyId),
+    pullSales(pharmacyId),
+    pullExpenses(pharmacyId),
+  ]);
 }
 
 async function pullProducts(): Promise<void> {
@@ -56,11 +61,20 @@ async function pullSales(pharmacyId: string): Promise<void> {
   await db.sales.bulkPut(data as SaleRow[]);
 }
 
+async function pullExpenses(pharmacyId: string): Promise<void> {
+  const { data, error } = await supabase
+    .from("expenses")
+    .select("*")
+    .eq("pharmacy_id", pharmacyId);
+  if (error || !data) return;
+  await db.expenses.bulkPut(data as Expense[]);
+}
+
 // ---------------- Realtime channels ----------------
 
 type AnyRow = { id?: string; [k: string]: unknown };
 
-function makeHandler(table: "products" | "batches" | "sales") {
+function makeHandler(table: "products" | "batches" | "sales" | "expenses") {
   return async (payload: RealtimePostgresChangesPayload<AnyRow>) => {
     const row = (payload.new ?? {}) as AnyRow;
     const oldRow = (payload.old ?? {}) as AnyRow;
@@ -108,6 +122,16 @@ export function startRealtimeSync(pharmacyId: string): () => void {
         filter: `pharmacy_id=eq.${pharmacyId}`,
       },
       makeHandler("sales"),
+    )
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "expenses",
+        filter: `pharmacy_id=eq.${pharmacyId}`,
+      },
+      makeHandler("expenses"),
     )
     .subscribe();
 

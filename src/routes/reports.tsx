@@ -34,6 +34,9 @@ import {
   useSalesStats,
 } from "@/lib/inventory-health";
 import { useSession } from "@/hooks/use-session";
+import { useExpenses } from "@/hooks/use-expenses";
+import * as expenseService from "@/services/expenseService";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/reports")({
@@ -927,30 +930,76 @@ function BestSellersTable() {
 
 type ExpenseType = "Recurring" | "One-time";
 
+const money = (n: number) =>
+  `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-const upcoming = [
-  { name: "City Utilities", date: "Apr 18, 2024", amount: 450 },
-  { name: "Admin Staff", date: "Apr 12, 2024", amount: 4100 },
-  { name: "Realty Group", date: "Apr 05, 2024", amount: 3000 },
-];
+const prettyDate = (iso: string) => {
+  const d = new Date(`${iso}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString(undefined, { month: "short", day: "2-digit", year: "numeric" });
+};
 
 function FinancialsLog() {
+  const { pharmacyId } = useSession();
+  const expenses = useExpenses(pharmacyId);
   const [form, setForm] = useState({
     name: "",
     date: "",
     type: "Recurring" as ExpenseType,
     amount: "",
   });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const submit = (e: React.FormEvent) => {
+  const upcoming = useMemo(() => expenseService.upcomingRecurring(expenses), [expenses]);
+
+  const monthTotals = useMemo(() => {
+    const now = new Date();
+    const from = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+    const to = expenseService.todayIso();
+    return expenseService.totalsInRange(expenses, from, to);
+  }, [expenses]);
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.amount) return;
-    setForm({ name: "", date: "", type: "Recurring", amount: "" });
+    if (saving) return;
+    setError(null);
+    setSaving(true);
+    try {
+      await expenseService.logExpense({
+        pharmacyId: pharmacyId ?? "",
+        name: form.name,
+        type: form.type,
+        amount: Number(form.amount),
+        date: form.date || undefined,
+      });
+      setForm({ name: "", date: "", type: "Recurring", amount: "" });
+      toast.success("Expense logged", { description: "Saved locally and syncing." });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Could not save the expense.";
+      setError(msg);
+    } finally {
+      setSaving(false);
+    }
   };
 
+  const markPaid = async (row: (typeof upcoming)[number]) => {
+    try {
+      await expenseService.markRecurringPaid(row.source);
+      toast.success(`${row.name} marked paid`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not record the payment.");
+    }
+  };
 
   return (
     <div className="space-y-6">
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatCard label="Expenses this month" value={money(monthTotals.total)} />
+        <StatCard label="Recurring (MTD)" value={money(monthTotals.recurring)} />
+        <StatCard label="One-time (MTD)" value={money(monthTotals.oneTime)} />
+      </div>
+
       <div className="max-w-md">
         <form
           onSubmit={submit}
@@ -994,17 +1043,18 @@ function FinancialsLog() {
                 className="h-11 w-full rounded-md border border-border bg-surface-low pl-7 pr-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
               />
             </div>
+            {error && <p className="text-xs font-medium text-danger">{error}</p>}
             <button
               type="submit"
-              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-secondary px-4 text-sm font-semibold text-secondary-foreground transition-colors hover:opacity-90"
+              disabled={saving}
+              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-secondary px-4 text-sm font-semibold text-secondary-foreground transition-colors hover:opacity-90 disabled:opacity-60"
             >
               <Plus className="h-4 w-4" />
-              Confirm Entry
+              {saving ? "Saving…" : "Confirm Entry"}
             </button>
           </div>
         </form>
       </div>
-
 
       <div className="rounded-xl border border-border bg-surface shadow-elev-sm">
         <div className="border-b border-border px-5 py-4">
@@ -1022,23 +1072,80 @@ function FinancialsLog() {
           </thead>
           <tbody>
             {upcoming.map((u) => (
-              <tr key={u.name} className="border-t border-border">
+              <tr key={u.id} className="border-t border-border">
                 <Td className="font-medium text-foreground">{u.name}</Td>
-                <Td className="font-mono-data text-muted-foreground">{u.date}</Td>
+                <Td className="font-mono-data text-muted-foreground">{prettyDate(u.dueDate)}</Td>
                 <Td align="right" className="font-mono-data font-semibold text-foreground">
-                  ${u.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  {money(u.amount)}
                 </Td>
                 <Td align="right">
-                  <button className="text-xs font-semibold text-primary hover:underline">
+                  <button
+                    type="button"
+                    onClick={() => void markPaid(u)}
+                    className="text-xs font-semibold text-primary hover:underline"
+                  >
                     Mark Paid
                   </button>
                 </Td>
               </tr>
             ))}
+            {upcoming.length === 0 && (
+              <tr>
+                <td colSpan={4} className="px-5 py-10 text-center text-muted-foreground">
+                  No recurring expenses yet.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
         </div>
       </div>
+
+      <div className="rounded-xl border border-border bg-surface shadow-elev-sm">
+        <div className="border-b border-border px-5 py-4">
+          <h3 className="text-lg font-semibold">Expense Log</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[520px] text-sm">
+            <thead>
+              <tr className="bg-surface-low font-mono-data text-[11px] font-semibold uppercase tracking-wider text-subtle-foreground">
+                <Th>Date</Th>
+                <Th>Expense Name</Th>
+                <Th>Type</Th>
+                <Th align="right">Amount</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {expenses.map((row) => (
+                <tr key={row.id} className="border-t border-border">
+                  <Td className="font-mono-data text-muted-foreground">{prettyDate(row.date)}</Td>
+                  <Td className="font-medium text-foreground">{row.name}</Td>
+                  <Td className="text-muted-foreground">{row.type}</Td>
+                  <Td align="right" className="font-mono-data font-semibold text-foreground">
+                    {money(row.amount)}
+                  </Td>
+                </tr>
+              ))}
+              {expenses.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="px-5 py-10 text-center text-muted-foreground">
+                    No expenses recorded yet.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StatCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-border bg-surface p-5 shadow-elev-sm">
+      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="mt-2 font-mono-data text-2xl font-bold text-foreground">{value}</p>
     </div>
   );
 }
