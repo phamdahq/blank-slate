@@ -3,33 +3,46 @@ import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/db/supabase";
 
 /**
- * Reactive Supabase auth session. Also mirrors the current user id to
- * localStorage under `phamda.uid` so non-React modules (sync engine, repos)
- * can read it without a hook.
+ * Module-scope auth store. First mount kicks off `getSession()` and
+ * subscribes to auth changes ONCE for the whole app; every subsequent
+ * `useAuth()` reads the cached snapshot synchronously so navigation
+ * doesn't flash a "Checking permissions…" state.
  */
-export function useAuth(): { session: Session | null; user: User | null; loading: boolean } {
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+type AuthSnapshot = { session: Session | null; loading: boolean };
 
+let snapshot: AuthSnapshot = { session: null, loading: true };
+const listeners = new Set<(s: AuthSnapshot) => void>();
+let bootstrapped = false;
+
+function setSnapshot(next: AuthSnapshot) {
+  snapshot = next;
+  persist(next.session);
+  listeners.forEach((l) => l(snapshot));
+}
+
+function bootstrap() {
+  if (bootstrapped) return;
+  bootstrapped = true;
+  supabase.auth.getSession().then(({ data }) => {
+    setSnapshot({ session: data.session, loading: false });
+  });
+  supabase.auth.onAuthStateChange((_e, s) => {
+    setSnapshot({ session: s, loading: false });
+  });
+}
+
+export function useAuth(): { session: Session | null; user: User | null; loading: boolean } {
+  bootstrap();
+  const [local, setLocal] = useState<AuthSnapshot>(snapshot);
   useEffect(() => {
-    let mounted = true;
-    supabase.auth.getSession().then(({ data }) => {
-      if (!mounted) return;
-      setSession(data.session);
-      setLoading(false);
-      persist(data.session);
-    });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
-      setSession(s);
-      persist(s);
-    });
+    // Sync in case snapshot changed between render and effect.
+    setLocal(snapshot);
+    listeners.add(setLocal);
     return () => {
-      mounted = false;
-      sub.subscription.unsubscribe();
+      listeners.delete(setLocal);
     };
   }, []);
-
-  return { session, user: session?.user ?? null, loading };
+  return { session: local.session, user: local.session?.user ?? null, loading: local.loading };
 }
 
 function persist(s: Session | null) {

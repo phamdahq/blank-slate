@@ -28,6 +28,11 @@ import {
 import { RequireRole } from "@/components/require-role";
 import { AppShell } from "@/components/app-shell";
 import { stockStatus, useCatalog, type Medication } from "@/lib/catalog";
+import {
+  daysUntilDate,
+  useInventoryRules,
+  useSalesStats,
+} from "@/lib/inventory-health";
 import { useSession } from "@/hooks/use-session";
 import { cn } from "@/lib/utils";
 
@@ -539,7 +544,7 @@ const Td = ({ children, className, align }: { children?: React.ReactNode; classN
   </td>
 );
 
-/* ---- Restock ---- */
+/* ---- Restock (low stock) ---- */
 function RestockTable({
   order,
   onToggle,
@@ -557,7 +562,7 @@ function RestockTable({
           return s === "critical" || s === "low";
         })
         .sort((a, b) => a.stock - b.stock),
-    [],
+    [medications],
   );
 
   return (
@@ -575,6 +580,9 @@ function RestockTable({
       {rows.map((m) => {
         const critical = m.stock === 0 || stockStatus(m) === "critical";
         const inOrder = order.includes(m.id);
+        const lastCost = m.batches.length
+          ? m.batches[m.batches.length - 1].cost
+          : 0;
         return (
           <tr
             key={m.id}
@@ -605,7 +613,7 @@ function RestockTable({
               {m.reorderLevel} Units
             </Td>
             <Td align="right" className="font-mono-data text-foreground">
-              ${(m.price * 0.6).toFixed(2)}
+              ${lastCost.toFixed(2)}
             </Td>
             <Td align="right">
               <button
@@ -636,30 +644,40 @@ function RestockTable({
   );
 }
 
-/* ---- Expiry ---- */
-function daysUntil(expiryYm: string): number {
-  const [y, m] = expiryYm.split("-").map(Number);
-  const d = new Date(y, (m ?? 1) - 1 + 1, 0); // last day of expiry month
-  const now = new Date();
-  return Math.round((d.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-}
-
+/* ---- Expiry risk ---- */
 function ExpiryTable() {
   const { pharmacyId } = useSession();
   const medications = useCatalog(pharmacyId);
-  type Row = { med: Medication; batchId: string; qty: number; expiry: string; days: number };
+  const { expireLevel } = useInventoryRules(pharmacyId);
+
+  type Row = {
+    med: Medication;
+    batchNumber: string;
+    batchId: string;
+    qty: number;
+    expiry: string;
+    days: number;
+  };
   const rows = useMemo<Row[]>(() => {
     const acc: Row[] = [];
     for (const m of medications) {
       for (const b of m.batches) {
-        const days = daysUntil(b.expiry);
-        if (days <= 365) {
-          acc.push({ med: m, batchId: b.id, qty: b.quantity, expiry: b.expiry, days });
+        if (b.quantity <= 0) continue;
+        const days = daysUntilDate(b.expiry);
+        if (days <= expireLevel) {
+          acc.push({
+            med: m,
+            batchNumber: b.batch_number,
+            batchId: b.id,
+            qty: b.quantity,
+            expiry: b.expiry,
+            days,
+          });
         }
       }
     }
     return acc.sort((a, b) => a.days - b.days);
-  }, []);
+  }, [medications, expireLevel]);
 
   return (
     <TableShell
@@ -669,13 +687,13 @@ function ExpiryTable() {
           <Th>Expiry Date</Th>
           <Th align="right">Remaining Life</Th>
           <Th align="right">Quantity</Th>
-          <Th align="right">Action</Th>
+          <Th align="right">Value at Risk</Th>
         </>
       }
     >
       {rows.map((r) => {
         const expired = r.days <= 0;
-        const critical = r.days > 0 && r.days < 30;
+        const critical = r.days > 0 && r.days <= Math.max(7, expireLevel / 3);
         return (
           <tr
             key={`${r.med.id}-${r.batchId}`}
@@ -693,7 +711,7 @@ function ExpiryTable() {
                 {r.med.name} {r.med.strength}
               </div>
               <div className="font-mono-data text-xs text-muted-foreground">
-                Batch {r.batchId}
+                Batch {r.batchNumber}
               </div>
             </Td>
             <Td className="font-mono-data text-foreground">{r.expiry}</Td>
@@ -714,22 +732,11 @@ function ExpiryTable() {
             <Td align="right" className="font-mono-data font-semibold text-foreground">
               {r.qty.toLocaleString()} Units
             </Td>
-            <Td align="right">
-              {expired ? (
-                <button
-                  type="button"
-                  className="inline-flex h-8 items-center gap-1.5 rounded-md bg-danger px-3 text-xs font-semibold text-danger-foreground hover:bg-danger/90"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                  Dispose
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className="inline-flex h-8 items-center gap-1.5 rounded-md bg-primary px-3 text-xs font-semibold text-primary-foreground hover:bg-primary-hover"
-                >
-                  Sale
-                </button>
+            <Td align="right" className="font-mono-data text-foreground">
+              $
+              {(r.qty * (r.med.batches.find((b) => b.id === r.batchId)?.cost ?? 0)).toLocaleString(
+                undefined,
+                { maximumFractionDigits: 0 },
               )}
             </Td>
           </tr>
@@ -738,7 +745,7 @@ function ExpiryTable() {
       {rows.length === 0 && (
         <tr>
           <td colSpan={5} className="px-5 py-12 text-center text-muted-foreground">
-            No batches expiring in the next year.
+            No batches expiring within the {expireLevel}-day alert window.
           </td>
         </tr>
       )}
@@ -746,22 +753,32 @@ function ExpiryTable() {
   );
 }
 
-/* ---- Stagnant ---- */
+/* ---- Stagnant (dead stock) ---- */
 function StagnantTable() {
   const { pharmacyId } = useSession();
   const medications = useCatalog(pharmacyId);
-  // Fabricated last-sold days & unit cost per medication for demo
+  const { deadstock } = useInventoryRules(pharmacyId);
+  const stats = useSalesStats(pharmacyId);
+
   const rows = useMemo(
     () =>
       medications
-        .map((m, i) => ({
-          med: m,
-          lastSold: 60 + ((i * 17) % 180),
-          unitCost: +(m.price * 0.6).toFixed(2),
-        }))
-        .filter((r) => r.lastSold >= 90)
-        .sort((a, b) => b.lastSold - a.lastSold),
-    [],
+        .filter((m) => m.stock > 0)
+        .map((m) => {
+          const s = stats.get(m.id);
+          const unitCost = m.batches.length
+            ? m.batches.reduce((sum, b) => sum + b.cost, 0) / m.batches.length
+            : 0;
+          return {
+            med: m,
+            lastSold: s?.daysSinceLastSale ?? null,
+            lastSaleDate: s?.lastSaleDate ?? null,
+            unitCost,
+          };
+        })
+        .filter((r) => r.lastSold === null || r.lastSold >= deadstock)
+        .sort((a, b) => (b.lastSold ?? Infinity) - (a.lastSold ?? Infinity)),
+    [medications, stats, deadstock],
   );
 
   return (
@@ -769,10 +786,10 @@ function StagnantTable() {
       head={
         <>
           <Th>Item Name</Th>
-          <Th align="right">Last Sale Date</Th>
+          <Th align="right">Last Sale</Th>
           <Th align="right">Quantity</Th>
           <Th align="right">Inventory Value</Th>
-          <Th align="right">Action</Th>
+          <Th align="right">Status</Th>
         </>
       }
     >
@@ -785,7 +802,10 @@ function StagnantTable() {
             <div className="text-xs text-muted-foreground">{r.med.form}</div>
           </Td>
           <Td align="right" className="font-mono-data text-muted-foreground">
-            {r.lastSold} Days ago
+            {r.lastSold === null ? "Never sold" : `${r.lastSold} Days ago`}
+            {r.lastSaleDate && (
+              <div className="text-[11px] text-subtle-foreground">{r.lastSaleDate}</div>
+            )}
           </Td>
           <Td align="right" className="font-mono-data text-foreground">
             {r.med.stock.toLocaleString()} Units
@@ -794,19 +814,16 @@ function StagnantTable() {
             ${(r.med.stock * r.unitCost).toLocaleString(undefined, { maximumFractionDigits: 0 })}
           </Td>
           <Td align="right">
-            <button
-              type="button"
-              className="inline-flex h-8 items-center gap-1.5 rounded-md bg-primary px-3 text-xs font-semibold text-primary-foreground hover:bg-primary-hover"
-            >
-              Sale
-            </button>
+            <span className="inline-flex h-7 items-center rounded-full bg-warning-soft px-2.5 font-mono-data text-xs font-semibold text-warning-soft-foreground">
+              Dead stock
+            </span>
           </Td>
         </tr>
       ))}
       {rows.length === 0 && (
         <tr>
           <td colSpan={5} className="px-5 py-12 text-center text-muted-foreground">
-            No stagnant items.
+            No item has been idle for {deadstock}+ days.
           </td>
         </tr>
       )}
@@ -818,22 +835,24 @@ function StagnantTable() {
 function BestSellersTable() {
   const { pharmacyId } = useSession();
   const medications = useCatalog(pharmacyId);
+  const stats = useSalesStats(pharmacyId);
+
   const rows = useMemo(
     () =>
       medications
-        .map((m, i) => {
-          const units = 300 + ((i * 137) % 1500);
-          const growth = ((i * 7) % 30) - 10; // -10..+19
-          return {
-            med: m,
-            units,
-            revenue: +(units * m.price).toFixed(0),
-            growth,
-          };
+        .map((m) => {
+          const s = stats.get(m.id);
+          const units = s?.units ?? 0;
+          const prev = s?.unitsPrev30 ?? 0;
+          const curr = s?.units30 ?? 0;
+          const growth =
+            prev === 0 ? (curr > 0 ? 100 : 0) : Math.round(((curr - prev) / prev) * 100);
+          return { med: m, units, revenue: s?.revenue ?? 0, growth };
         })
-        .sort((a, b) => b.revenue - a.revenue)
-        .slice(0, 8),
-    [],
+        .filter((r) => r.units > 0)
+        .sort((a, b) => b.units - a.units)
+        .slice(0, 10),
+    [medications, stats],
   );
 
   return (
@@ -841,10 +860,10 @@ function BestSellersTable() {
       head={
         <>
           <Th>Item Name</Th>
-          <Th align="right">Units Sold (MTD)</Th>
+          <Th align="right">Units Sold</Th>
           <Th align="right">Total Revenue</Th>
           <Th align="right">Stock Level</Th>
-          <Th align="right">Growth Trend</Th>
+          <Th align="right">Growth Trend (30d)</Th>
         </>
       }
     >
@@ -862,7 +881,7 @@ function BestSellersTable() {
               {r.units.toLocaleString()} Units
             </Td>
             <Td align="right" className="font-mono-data font-semibold text-primary">
-              ${r.revenue.toLocaleString()}
+              ${r.revenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}
             </Td>
             <Td align="right">
               <span
@@ -893,6 +912,13 @@ function BestSellersTable() {
           </tr>
         );
       })}
+      {rows.length === 0 && (
+        <tr>
+          <td colSpan={5} className="px-5 py-12 text-center text-muted-foreground">
+            No sales recorded yet.
+          </td>
+        </tr>
+      )}
     </TableShell>
   );
 }

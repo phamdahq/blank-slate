@@ -12,7 +12,7 @@
  *
  * Import from browser code only. `startSyncEngine()` no-ops on the server.
  */
-import { db, isBrowser, type OutboxEntry, type OutboxOp } from "./dexie";
+import { db, isBrowser, type OutboxEntry, type OutboxOp, type SaleRow } from "./dexie";
 import { supabase } from "./supabase";
 
 let started = false;
@@ -191,10 +191,44 @@ function isPermanentFailure(msg: string): boolean {
 
 
 
+/** Insert the sale row directly and decrement the batch (fallback path). */
+async function insertSaleDirect(row: SaleRow) {
+  const { error } = await supabase.from("sales").insert({
+    id: row.id,
+    transaction_id: row.transaction_id ?? null,
+    pharmacy_id: row.pharmacy_id,
+    product_id: row.product_id,
+    batch_id: row.batch_id,
+    quantity_sold: row.quantity_sold,
+    cost_price_at_sale: row.cost_price_at_sale,
+    selling_price_at_sale: row.selling_price_at_sale,
+    sale_date: row.sale_date,
+  });
+  // Already synced (e.g. retry after a timeout) — treat as success.
+  if (error && !error.message.toLowerCase().includes("duplicate key")) {
+    throw new Error(error.message);
+  }
+
+  const { data: batch, error: readErr } = await supabase
+    .from("batches")
+    .select("quantity")
+    .eq("id", row.batch_id)
+    .maybeSingle();
+  if (readErr) throw new Error(readErr.message);
+  if (batch) {
+    const next = Math.max(0, (batch.quantity ?? 0) - row.quantity_sold);
+    const { error: updErr } = await supabase
+      .from("batches")
+      .update({ quantity: next })
+      .eq("id", row.batch_id);
+    if (updErr) throw new Error(updErr.message);
+  }
+}
+
 async function applyOp(op: OutboxOp): Promise<void> {
   switch (op.kind) {
     case "sales.insert": {
-      // Atomic server-side decrement + insert. See migration `record_sale`.
+      // Preferred: atomic server-side decrement + insert (supabase/record_sale.sql).
       const { error } = await supabase.rpc("record_sale", {
         p_sale_id: op.row.id,
         p_pharmacy_id: op.row.pharmacy_id,
@@ -206,9 +240,21 @@ async function applyOp(op: OutboxOp): Promise<void> {
         p_transaction_id: op.row.transaction_id ?? null,
         p_sale_date: op.row.sale_date,
       });
-      if (error) throw new Error(error.message);
+      if (!error) return;
+
+      const msg = error.message.toLowerCase();
+      const rpcMissing =
+        msg.includes("could not find the function") ||
+        msg.includes("does not exist") ||
+        msg.includes("schema cache") ||
+        (error as { code?: string }).code === "PGRST202";
+      if (!rpcMissing) throw new Error(error.message);
+
+      // Fallback: plain insert + batch decrement so sales still reach Supabase.
+      await insertSaleDirect(op.row);
       return;
     }
+
     case "batches.upsert": {
       const { error } = await supabase.from("batches").upsert(op.row);
       if (error) throw new Error(error.message);

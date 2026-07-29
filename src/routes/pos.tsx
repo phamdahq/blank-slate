@@ -118,6 +118,7 @@ function PosView() {
   const itemCount = lines.reduce((s, x) => s + x.line.qty, 0);
   const [charging, setCharging] = useState(false);
   const [receipt, setReceipt] = useState<string | null>(null);
+  const [queuedOffline, setQueuedOffline] = useState(false);
 
   async function handleCharge() {
     if (lines.length === 0 || charging) return;
@@ -138,6 +139,7 @@ function PosView() {
       );
       setCart([]);
       setMobileCartOpen(false);
+      setQueuedOffline(typeof navigator !== "undefined" && !navigator.onLine);
       setReceipt(result.transaction_id);
       setTimeout(() => setReceipt(null), 2500);
     } catch (err) {
@@ -199,8 +201,8 @@ function PosView() {
           </div>
 
           {/* Desktop table */}
-          <div className="mt-5 hidden overflow-hidden rounded-lg border border-border bg-surface shadow-elev-sm md:block">
-            <table className="w-full text-sm">
+          <div className="mt-5 hidden overflow-x-auto rounded-lg border border-border bg-surface shadow-elev-sm md:block">
+            <table className="w-full min-w-[680px] text-sm">
               <thead>
                 <tr className="bg-surface-low">
                   <ThSm>Medication</ThSm>
@@ -295,7 +297,7 @@ function PosView() {
         </section>
 
         {/* Right: cart (desktop) */}
-        <aside className="hidden w-[380px] shrink-0 lg:block">
+        <aside className="hidden w-[320px] shrink-0 lg:block xl:w-[380px]">
           <CartPanel
             lines={lines}
             subtotal={subtotal}
@@ -356,8 +358,17 @@ function PosView() {
         </div>
       )}
       {receipt && (
-        <div className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 rounded-full bg-success px-4 py-2 text-sm font-semibold text-success-foreground shadow-elev-lg">
-          Sale committed · {receipt}
+        <div
+          className={cn(
+            "fixed bottom-24 left-1/2 z-50 -translate-x-1/2 rounded-full px-4 py-2 text-sm font-semibold shadow-elev-lg",
+            queuedOffline
+              ? "bg-warning-soft text-warning-soft-foreground"
+              : "bg-success text-success-foreground",
+          )}
+        >
+          {queuedOffline
+            ? `Saved offline · syncs when online · ${receipt}`
+            : `Sale committed · ${receipt}`}
         </div>
       )}
     </AppShellWithSlot>
@@ -555,7 +566,7 @@ function CartRow({
               : "bg-primary-soft text-primary-soft-foreground hover:bg-primary-soft/70",
           )}
         >
-          Batch #{batch.id}
+          Batch #{batch.batch_number}
           {med.releaseType !== "IR" && (
             <span className="rounded-full bg-secondary-soft px-1.5 py-0.5 font-mono-data text-[9px] font-bold uppercase tracking-wider text-secondary-soft-foreground">
               {med.releaseType}
@@ -591,7 +602,7 @@ function CartRow({
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-mono-data text-xs font-bold">#{b.id}</span>
+                      <span className="font-mono-data text-xs font-bold">#{b.batch_number}</span>
                       {med.releaseType !== "IR" && (
                         <span className="rounded-full bg-secondary-soft px-1.5 py-0.5 font-mono-data text-[9px] font-bold uppercase tracking-wider text-secondary-soft-foreground">
                           {med.releaseType}

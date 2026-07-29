@@ -99,7 +99,7 @@ export interface UserRow {
   last_name: string;
   phone_number: string;
   email?: string | null;
-  role: "admin" | "staff" | "owner";
+  role: "owner" | "pharmacist" | "cashier";
   is_active: boolean;
   created_at?: string;
 }

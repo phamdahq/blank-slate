@@ -28,7 +28,7 @@ function ResetPasswordPage() {
   const [done, setDone] = useState(false);
 
   const tooShort = password.length > 0 && password.length < 8;
-  const mismatch = confirm.length > 0 && confirm !== password;
+  const mismatch = !tooShort && confirm !== password;
   const valid = password.length >= 8 && confirm === password;
 
   async function submit(e: React.FormEvent) {

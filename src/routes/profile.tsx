@@ -1,19 +1,24 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
+  ArrowLeft,
   Building2,
   Check,
   CheckCircle2,
   CreditCard,
+  HelpCircle,
   Landmark,
   LogOut,
+  Mail,
+  Phone as PhoneIcon,
+  Plus,
   Save,
   Settings2,
   Sparkles,
+  Users,
   UserCog,
   Wallet,
-  X,
 } from "lucide-react";
 import { RequireRole } from "@/components/require-role";
 import { AppShell } from "@/components/app-shell";
@@ -27,6 +32,9 @@ import {
   profileRepo,
   settingsRepo,
 } from "@/db/pharmacy-config";
+import { submitPayout } from "@/services/admin/payoutService";
+import { listStaff, setStaffActive } from "@/services/admin/staffService";
+import type { UserRow } from "@/db/dexie";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/profile")({
@@ -295,11 +303,18 @@ function ProfilePageView() {
             </div>
           </Card>
         </section>
+
+        {role === "owner" && pharmacyId && (
+          <section className="mt-6">
+            <StaffManagement pharmacyId={pharmacyId} currentUserId={user?.id ?? null} />
+          </section>
+        )}
       </div>
 
       {payOpen && (
         <PaymentSheet
           tier={pharmacy?.tier ?? "basic"}
+          pharmacyId={pharmacyId ?? null}
           onClose={() => setPayOpen(false)}
         />
       )}
@@ -421,9 +436,11 @@ const TIER_AMOUNTS: Record<string, number> = {
 
 function PaymentSheet({
   tier,
+  pharmacyId,
   onClose,
 }: {
   tier: string;
+  pharmacyId: string | null;
   onClose: () => void;
 }) {
   const amount = TIER_AMOUNTS[tier] ?? TIER_AMOUNTS.basic;
@@ -432,7 +449,9 @@ function PaymentSheet({
   > | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [method, setMethod] = useState<PayMethod | null>(null);
+  const [method, setMethod] = useState<PayMethod>("cbe");
+  const [txnId, setTxnId] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
 
   useEffect(() => {
@@ -461,45 +480,89 @@ function PaymentSheet({
   }, [cfg, method]);
 
   const methods: Array<{ id: PayMethod; label: string; icon: React.ComponentType<{ className?: string }> }> = [
-    { id: "cash", label: "Cash", icon: Wallet },
     { id: "cbe", label: "CBE", icon: Landmark },
     { id: "telebirr", label: "Telebirr", icon: CreditCard },
+    { id: "cash", label: "Cash", icon: Wallet },
   ];
+
+  const needsTxn = method === "cbe" || method === "telebirr";
+  const canConfirm = !submitting && !!method && (!needsTxn || txnId.trim().length >= 3);
+
+  async function handleConfirm() {
+    if (!canConfirm) return;
+    setError(null);
+    setSubmitting(true);
+    try {
+      if (!pharmacyId) throw new Error("Missing pharmacy context");
+      const methodLabel: "Cash" | "CBE" | "Telebirr" =
+        method === "cash" ? "Cash" : method === "cbe" ? "CBE" : "Telebirr";
+      const reference = needsTxn
+        ? txnId.trim()
+        : `CASH-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+      await submitPayout({
+        pharmacy_id: pharmacyId,
+        platform_config_id: cfg?.id ?? null,
+        amount,
+        payment_method: methodLabel,
+        transaction_reference: reference,
+      });
+      setConfirmed(true);
+      setTimeout(onClose, 900);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to submit payment");
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-background/60 backdrop-blur-sm sm:items-center">
       <div className="absolute inset-0" onClick={onClose} aria-hidden />
       <div className="relative w-full max-w-lg rounded-t-2xl border-x border-t border-border bg-surface shadow-elev-lg sm:rounded-2xl sm:border">
-        <header className="flex items-start justify-between border-b border-border px-5 py-4">
-          <div>
-            <h3 className="text-base font-bold">Subscription payment</h3>
-            <p className="text-xs text-muted-foreground">
-              Choose how you want to settle this cycle.
-            </p>
-          </div>
+        {/* Top bar */}
+        <header className="flex items-center justify-between border-b border-border px-4 py-3">
           <button
             onClick={onClose}
-            aria-label="Close"
-            className="grid h-9 w-9 place-items-center rounded-md text-muted-foreground hover:bg-surface-low"
+            aria-label="Back"
+            className="grid h-9 w-9 place-items-center rounded-md text-primary hover:bg-surface-low"
           >
-            <X className="h-4 w-4" />
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <h3 className="text-base font-bold text-primary">Payment &amp; Subscription</h3>
+          <button
+            aria-label="Help"
+            className="grid h-9 w-9 place-items-center rounded-full border border-border text-muted-foreground hover:bg-surface-low"
+          >
+            <HelpCircle className="h-4 w-4" />
           </button>
         </header>
 
-        {/* Total */}
-        <div className="border-b border-border px-5 py-5 text-center">
-          <p className="font-mono-data text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-            Total amount due
-          </p>
-          <p className="mt-1 font-mono-data text-4xl font-bold tracking-tight text-foreground">
-            ${amount.toFixed(2)}
-          </p>
-          <p className="mt-1 text-[11px] uppercase tracking-wider text-muted-foreground">
-            {tier} plan
-          </p>
+        <div className="px-4 pt-4">
+          {/* Current plan card */}
+          <div className="flex items-center justify-between rounded-xl bg-primary px-5 py-4 text-primary-foreground shadow-elev-sm">
+            <div>
+              <p className="font-mono-data text-[11px] font-bold uppercase tracking-wider opacity-80">
+                Current Plan
+              </p>
+              <p className="mt-1 text-2xl font-bold capitalize leading-tight">
+                {tier} Plan
+              </p>
+            </div>
+            <span className="rounded-full bg-primary-hover/60 px-4 py-1.5 text-xs font-bold ring-1 ring-white/10">
+              Active
+            </span>
+          </div>
+
+          {/* Total row */}
+          <div className="mt-3 flex items-center justify-between border-b border-border px-1 py-4">
+            <span className="text-sm text-muted-foreground">Total Amount Due</span>
+            <span className="font-mono-data text-2xl font-bold tracking-tight text-foreground">
+              {amount.toFixed(0)} ETB
+            </span>
+          </div>
         </div>
 
-        <div className="space-y-4 px-5 py-5">
+        <div className="space-y-4 px-4 py-4">
           {/* Method cards */}
           <div className="grid grid-cols-3 gap-2">
             {methods.map((m) => {
@@ -544,11 +607,17 @@ function PaymentSheet({
                   {cfg?.payment_full_name ?? "—"}
                 </span>
               </p>
-              {cfg?.support_phone_number && (
-                <p className="mt-1 text-[11px] text-muted-foreground">
-                  Support: <span className="font-mono-data">{cfg.support_phone_number}</span>
-                </p>
-              )}
+              <label className="mt-3 block">
+                <span className="mb-1 block font-mono-data text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Transaction ID
+                </span>
+                <input
+                  value={txnId}
+                  onChange={(e) => setTxnId(e.target.value)}
+                  placeholder="Enter reference from your receipt"
+                  className="h-10 w-full rounded-md border border-border bg-background px-3 font-mono-data text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
+                />
+              </label>
             </div>
           )}
           {!loading && !error && method === "cash" && (
@@ -560,14 +629,11 @@ function PaymentSheet({
           {/* Confirm */}
           <button
             type="button"
-            disabled={!method}
-            onClick={() => {
-              setConfirmed(true);
-              setTimeout(onClose, 700);
-            }}
+            disabled={!canConfirm}
+            onClick={handleConfirm}
             className={cn(
               "inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg text-sm font-semibold transition-colors",
-              method
+              canConfirm
                 ? "bg-primary text-primary-foreground hover:bg-primary-hover"
                 : "cursor-not-allowed bg-surface-mid text-muted-foreground",
             )}
@@ -582,7 +648,7 @@ function PaymentSheet({
             >
               <Check className="h-3.5 w-3.5" />
             </span>
-            {confirmed ? "Confirmed" : "Confirm"}
+            {confirmed ? "Submitted for review" : submitting ? "Submitting…" : "Confirm payment"}
           </button>
         </div>
         <div className="h-[env(safe-area-inset-bottom)]" />
@@ -591,4 +657,158 @@ function PaymentSheet({
   );
 }
 
+// ---------- Staff Management (owner-only) ----------
 
+function StaffManagement({
+  pharmacyId,
+  currentUserId,
+}: {
+  pharmacyId: string;
+  currentUserId: string | null;
+}) {
+  const [rows, setRows] = useState<UserRow[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  async function refresh() {
+    try {
+      const data = await listStaff(pharmacyId);
+      setRows(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load staff");
+    }
+  }
+
+  useEffect(() => {
+    void refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pharmacyId]);
+
+  async function toggle(u: UserRow) {
+    setBusyId(u.id);
+    setError(null);
+    try {
+      await setStaffActive(u.id, !u.is_active);
+      setRows((prev) =>
+        prev ? prev.map((r) => (r.id === u.id ? { ...r, is_active: !u.is_active } : r)) : prev,
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update staff");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  return (
+    <section className="rounded-xl border border-border bg-surface p-5 shadow-elev-sm">
+      <header className="mb-4 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <span className="grid h-7 w-7 place-items-center rounded-md bg-primary-soft text-primary">
+            <Users className="h-3.5 w-3.5" />
+          </span>
+          <h2 className="font-mono-data text-[12px] font-bold uppercase tracking-wider text-primary">
+            Staff Management
+          </h2>
+        </div>
+        <Link
+          to="/staff/add"
+          className="inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-3 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
+        >
+          <Plus className="h-4 w-4" /> Add new staff
+        </Link>
+      </header>
+
+      {error && (
+        <div className="mb-3 rounded-md border border-danger-soft bg-danger-soft/40 px-3 py-2 text-xs text-danger">
+          {error}
+        </div>
+      )}
+
+      {rows === null ? (
+        <p className="text-xs text-muted-foreground">Loading staff…</p>
+      ) : rows.length === 0 ? (
+        <p className="text-xs text-muted-foreground">
+          No team members yet. Invite your first staff to get started.
+        </p>
+      ) : (
+        <ul className="divide-y divide-border">
+          {rows.map((u) => {
+            const isSelf = u.id === currentUserId;
+            const name = `${u.first_name ?? ""} ${u.last_name ?? ""}`.trim() || "—";
+            const initials =
+              name
+                .split(" ")
+                .filter(Boolean)
+                .map((n) => n[0])
+                .slice(0, 2)
+                .join("")
+                .toUpperCase() || "··";
+            return (
+              <li
+                key={u.id}
+                className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary-soft text-sm font-bold text-primary">
+                    {initials}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="truncate text-sm font-semibold">{name}</p>
+                      <span className="rounded-md bg-muted px-1.5 py-0.5 font-mono-data text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        {u.role}
+                      </span>
+                    </div>
+                    <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
+                      {u.email && (
+                        <span className="inline-flex items-center gap-1">
+                          <Mail className="h-3 w-3" /> {u.email}
+                        </span>
+                      )}
+                      {u.phone_number && (
+                        <span className="inline-flex items-center gap-1">
+                          <PhoneIcon className="h-3 w-3" /> {u.phone_number}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 sm:justify-end">
+                  <span
+                    className={cn(
+                      "inline-flex h-6 items-center rounded-full px-2 font-mono-data text-[10px] font-bold uppercase tracking-wider",
+                      u.is_active
+                        ? "bg-success-soft text-success-soft-foreground"
+                        : "bg-muted text-muted-foreground",
+                    )}
+                  >
+                    {u.is_active ? "Active" : "Inactive"}
+                  </span>
+                  <button
+                    disabled={busyId === u.id || isSelf || u.role === "owner"}
+                    onClick={() => void toggle(u)}
+                    className={cn(
+                      "inline-flex h-8 items-center rounded-md px-3 text-xs font-semibold transition-colors disabled:opacity-50",
+                      u.is_active
+                        ? "bg-danger-soft text-danger hover:bg-danger hover:text-danger-foreground"
+                        : "bg-success-soft text-success-soft-foreground hover:opacity-90",
+                    )}
+                    title={
+                      isSelf
+                        ? "You cannot deactivate yourself"
+                        : u.role === "owner"
+                          ? "Owners cannot be deactivated here"
+                          : undefined
+                    }
+                  >
+                    {busyId === u.id ? "…" : u.is_active ? "Deactivate" : "Activate"}
+                  </button>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
+  );
+}

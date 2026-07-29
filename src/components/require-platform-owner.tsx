@@ -6,13 +6,25 @@ import { useAuth } from "@/hooks/use-auth";
 
 type State = "checking" | "allowed" | "denied" | "anonymous";
 
+// Cache platform-owner check per user so navigation between admin pages
+// doesn't re-hit Supabase and flash "Checking permissions…".
+const ownerCache = new Map<string, boolean>();
+const ownerInFlight = new Map<string, Promise<boolean>>();
+
 /**
  * Guard for global platform management screens (e.g. /register).
  * Only users present in `platform_admins` with role `platform_owner` pass.
  */
 export function RequirePlatformOwner({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
-  const [state, setState] = useState<State>("checking");
+  const initial: State = user
+    ? ownerCache.has(user.id)
+      ? ownerCache.get(user.id)
+        ? "allowed"
+        : "denied"
+      : "checking"
+    : "checking";
+  const [state, setState] = useState<State>(initial);
 
   useEffect(() => {
     let cancelled = false;
@@ -22,17 +34,31 @@ export function RequirePlatformOwner({ children }: { children: ReactNode }) {
       if (typeof window !== "undefined") window.location.replace("/login");
       return;
     }
-    setState("checking");
-    void supabase
-      .from("platform_admins")
-      .select("id, role, is_active")
-      .eq("id", user.id)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (cancelled) return;
+    if (ownerCache.has(user.id)) {
+      setState(ownerCache.get(user.id) ? "allowed" : "denied");
+    } else {
+      setState("checking");
+    }
+    let promise = ownerInFlight.get(user.id);
+    if (!promise) {
+      promise = Promise.resolve(
+        supabase
+          .from("platform_admins")
+          .select("id, role, is_active")
+          .eq("id", user.id)
+          .maybeSingle(),
+      ).then(({ data }) => {
         const ok = !!data && data.role === "platform_owner" && data.is_active !== false;
-        setState(ok ? "allowed" : "denied");
+        ownerCache.set(user.id, ok);
+        ownerInFlight.delete(user.id);
+        return ok;
       });
+      ownerInFlight.set(user.id, promise);
+    }
+    void promise.then((ok) => {
+      if (cancelled) return;
+      setState(ok ? "allowed" : "denied");
+    });
     return () => {
       cancelled = true;
     };
