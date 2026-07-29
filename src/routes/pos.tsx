@@ -201,17 +201,17 @@ function PosView() {
           </div>
 
           {/* Desktop table */}
-          <div className="mt-5 hidden overflow-x-auto rounded-lg border border-border bg-surface shadow-elev-sm md:block">
-            <table className="w-full min-w-[680px] text-sm">
+          <div className="mt-5 hidden rounded-lg border border-border bg-surface shadow-elev-sm md:block">
+            <table className="w-full table-fixed text-sm">
               <thead>
                 <tr className="bg-surface-low">
-                  <ThSm>Medication</ThSm>
-                  <ThSm>Strength</ThSm>
-                  <ThSm>Form</ThSm>
-                  <ThSm align="right">Pack</ThSm>
-                  <ThSm align="right">Stock</ThSm>
-                  <ThSm align="right">Price</ThSm>
-                  <ThSm className="w-16" />
+                  <ThSm className="w-[30%]">Medication</ThSm>
+                  <ThSm className="w-[12%]">Strength</ThSm>
+                  <ThSm className="w-[12%]">Form</ThSm>
+                  <ThSm className="w-[10%]" align="right">Pack</ThSm>
+                  <ThSm className="w-[14%]" align="right">Stock</ThSm>
+                  <ThSm className="w-[14%]" align="right">Price</ThSm>
+                  <ThSm className="w-[8%]" />
                 </tr>
               </thead>
               <tbody>
@@ -225,27 +225,31 @@ function PosView() {
                         inCart && "bg-primary-soft/30",
                       )}
                     >
-                      <td className="px-5 py-3.5">
-                        <div className="font-semibold">{m.name}</div>
+                      <td className="px-3 py-3">
+                        <div className="truncate font-semibold" title={m.name}>{m.name}</div>
                       </td>
 
-                      <td className="px-5 py-3.5 text-muted-foreground">{m.strength}</td>
-                      <td className="px-5 py-3.5 text-muted-foreground">{m.form}</td>
-                      <td className="px-5 py-3.5 text-right font-mono-data text-muted-foreground">
+                      <td className="px-3 py-3 text-muted-foreground">
+                        <div className="truncate">{m.strength}</div>
+                      </td>
+                      <td className="px-3 py-3 text-muted-foreground">
+                        <div className="truncate">{m.form}</div>
+                      </td>
+                      <td className="px-3 py-3 text-right font-mono-data text-muted-foreground">
                         ×{m.packSize}
                       </td>
-                      <td className="px-5 py-3.5 text-right">
-                        <span className="inline-flex items-baseline gap-1 rounded-md bg-surface-mid px-2 py-1">
+                      <td className="px-3 py-3 text-right">
+                        <span className="inline-flex items-baseline gap-1 rounded-md bg-surface-mid px-1.5 py-1">
                           <span className="font-mono-data text-sm font-bold">{m.stock}</span>
                           <span className="font-mono-data text-[10px] uppercase text-subtle-foreground">
                             units
                           </span>
                         </span>
                       </td>
-                      <td className="px-5 py-3.5 text-right font-mono-data font-semibold text-primary">
+                      <td className="px-3 py-3 text-right font-mono-data font-semibold text-primary">
                         ${m.price.toFixed(2)}
                       </td>
-                      <td className="px-3 py-3.5 text-right">
+                      <td className="px-3 py-3 text-right">
                         <button
                           type="button"
                           onClick={() => addToCart(m)}
@@ -388,7 +392,7 @@ function ThSm({
   return (
     <th
       className={cn(
-        "px-5 py-2.5 font-mono-data text-[10px] font-semibold uppercase tracking-wider text-subtle-foreground",
+        "px-3 py-2.5 font-mono-data text-[10px] font-semibold uppercase tracking-wider text-subtle-foreground",
         align === "right" ? "text-right" : "text-left",
         className,
       )}
