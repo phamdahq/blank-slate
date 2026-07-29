@@ -230,10 +230,10 @@ function PosView() {
                       </td>
 
                       <td className="px-3 py-3 text-muted-foreground">
-                        <span className="truncate">{m.strength}</span>
+                        <div className="truncate">{m.strength}</div>
                       </td>
                       <td className="px-3 py-3 text-muted-foreground">
-                        <span className="truncate">{m.form}</span>
+                        <div className="truncate">{m.form}</div>
                       </td>
                       <td className="px-3 py-3 text-right font-mono-data text-muted-foreground">
                         ×{m.packSize}
