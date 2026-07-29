@@ -392,7 +392,7 @@ function ThSm({
   return (
     <th
       className={cn(
-        "px-5 py-2.5 font-mono-data text-[10px] font-semibold uppercase tracking-wider text-subtle-foreground",
+        "px-3 py-2.5 font-mono-data text-[10px] font-semibold uppercase tracking-wider text-subtle-foreground",
         align === "right" ? "text-right" : "text-left",
         className,
       )}
