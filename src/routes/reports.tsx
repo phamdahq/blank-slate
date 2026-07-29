@@ -34,6 +34,9 @@ import {
   useSalesStats,
 } from "@/lib/inventory-health";
 import { useSession } from "@/hooks/use-session";
+import { useExpenses } from "@/hooks/use-expenses";
+import * as expenseService from "@/services/expenseService";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/reports")({
