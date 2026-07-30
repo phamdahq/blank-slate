@@ -13,4 +13,5 @@ export * as payoutService from "./admin/payoutService";
 export * as stockService from "./inventory/stockService";
 export * as inventoryCatalogService from "./inventory/catalogService";
 export * as expenseService from "./expenseService";
+export * as dashboardService from "./dashboardService";
 export * as realtimeService from "./sync/realtimeService";
