@@ -1,7 +1,11 @@
 import { useEffect } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import * as dashboardService from "@/services/dashboardService";
-import type { DashboardData, DashboardRange } from "@/services/dashboardService";
+import type {
+  CustomRange,
+  DashboardData,
+  DashboardRange,
+} from "@/services/dashboardService";
 import { settingsRepo } from "@/db/pharmacy-config";
 
 /**
@@ -11,17 +15,18 @@ import { settingsRepo } from "@/db/pharmacy-config";
 export function useDashboard(
   pharmacyId: string | null | undefined,
   range: DashboardRange,
+  custom?: CustomRange | null,
 ): DashboardData {
   useEffect(() => {
     if (pharmacyId) void settingsRepo.refresh(pharmacyId);
   }, [pharmacyId]);
 
-  const fallback = dashboardService.loadEmpty(range);
+  const fallback = dashboardService.loadEmpty(range, new Date(), custom);
 
   return (
     useLiveQuery(
-      () => dashboardService.loadDashboard(pharmacyId, range),
-      [pharmacyId, range],
+      () => dashboardService.loadDashboard(pharmacyId, range, new Date(), custom),
+      [pharmacyId, range, custom?.from, custom?.to],
       fallback,
     ) ?? fallback
   );

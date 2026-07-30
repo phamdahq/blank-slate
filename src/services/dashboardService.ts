@@ -10,7 +10,13 @@ import { db, isBrowser, type Batch } from "@/db/dexie";
 import { DEFAULT_SETTINGS } from "@/db/pharmacy-config";
 import { LOW_STOCK_LEVEL } from "@/lib/catalog";
 
-export type DashboardRange = "today" | "week" | "month" | "year";
+export type DashboardRange = "today" | "week" | "month" | "year" | "custom";
+
+/** User-picked inclusive bounds (YYYY-MM-DD) used by the "custom" range. */
+export interface CustomRange {
+  from: string;
+  to: string;
+}
 
 export interface RangeWindow {
   /** Inclusive ISO start date (YYYY-MM-DD). */
@@ -45,9 +51,23 @@ function fmt(isoDate: string): string {
 }
 
 /** Resolve a range id into a concrete inclusive date window. */
-export function resolveRange(range: DashboardRange, now = new Date()): RangeWindow {
+export function resolveRange(
+  range: DashboardRange,
+  now = new Date(),
+  custom?: CustomRange | null,
+): RangeWindow {
   const today = iso(now);
   switch (range) {
+    case "custom": {
+      const start = custom?.from || today;
+      const endRaw = custom?.to || today;
+      const end = endRaw < start ? start : endRaw;
+      return {
+        start,
+        end,
+        label: start === end ? fmt(start) : `${fmt(start)} – ${fmt(end)}`,
+      };
+    }
     case "today":
       return { start: today, end: today, label: `Today · ${fmt(today)}` };
     case "week": {
@@ -145,9 +165,13 @@ function bucketLabel(key: string, range: DashboardRange): string {
 }
 
 /** Zeroed dashboard data — used as the SSR/first-paint fallback. */
-export function loadEmpty(range: DashboardRange, now = new Date()): DashboardData {
+export function loadEmpty(
+  range: DashboardRange,
+  now = new Date(),
+  custom?: CustomRange | null,
+): DashboardData {
   return {
-    window: resolveRange(range, now),
+    window: resolveRange(range, now, custom),
     financials: {
       revenue: 0,
       cogs: 0,
@@ -177,12 +201,13 @@ export async function loadDashboard(
   pharmacyId: string | null | undefined,
   range: DashboardRange,
   now = new Date(),
+  custom?: CustomRange | null,
 ): Promise<DashboardData> {
-  const win = resolveRange(range, now);
+  const win = resolveRange(range, now, custom);
   const prev = previousWindow(win);
   const today = iso(now);
 
-  if (!isBrowser || !pharmacyId) return loadEmpty(range, now);
+  if (!isBrowser || !pharmacyId) return loadEmpty(range, now, custom);
 
 
   const [sales, expenses, batches, settings] = await Promise.all([
