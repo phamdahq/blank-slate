@@ -400,6 +400,7 @@ function AlertCard({
   label,
   value,
   status,
+  detail,
   cta,
   to,
 }: {
@@ -408,6 +409,7 @@ function AlertCard({
   label: string;
   value: string;
   status: string;
+  detail?: string;
   cta: string;
   to: "/inventory";
 }) {
@@ -438,6 +440,10 @@ function AlertCard({
       >
         {status}
       </div>
+      {detail && (
+        <div className="mt-2 line-clamp-2 text-[11px] text-subtle-foreground">{detail}</div>
+      )}
+
       <div className="mt-3 border-t border-border/70 pt-3">
         <Link
           to={to}
