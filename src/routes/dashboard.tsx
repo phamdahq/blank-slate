@@ -50,8 +50,15 @@ const ranges: { id: DashboardRange; label: string }[] = [
   { id: "today", label: "Today" },
   { id: "week", label: "This Week" },
   { id: "month", label: "This Month" },
-  { id: "year", label: "This Year" },
+  { id: "custom", label: "Custom" },
 ];
+
+const todayIso = () => {
+  const d = new Date();
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60_000)
+    .toISOString()
+    .slice(0, 10);
+};
 
 const money = (n: number) =>
   `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
