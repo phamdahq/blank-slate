@@ -310,7 +310,7 @@ function KpiCard({
   label: string;
   value: string;
   hint?: string;
-  badge?: { tone: "success"; label: string; icon?: React.ReactNode };
+  badge?: { tone: "success" | "danger"; label: string; icon?: React.ReactNode };
   variant?: "default" | "primary";
   icon?: React.ReactNode;
 }) {
