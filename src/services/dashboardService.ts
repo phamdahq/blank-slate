@@ -144,6 +144,31 @@ function bucketLabel(key: string, range: DashboardRange): string {
   return `${MONTHS[(m ?? 1) - 1]} ${String(d).padStart(2, "0")}`;
 }
 
+/** Zeroed dashboard data — used as the SSR/first-paint fallback. */
+export function loadEmpty(range: DashboardRange, now = new Date()): DashboardData {
+  return {
+    window: resolveRange(range, now),
+    financials: {
+      revenue: 0,
+      cogs: 0,
+      grossProfit: 0,
+      operatingExpenses: 0,
+      netProfit: 0,
+      margin: 0,
+      revenueChange: null,
+      previousRevenue: 0,
+    },
+    trend: [],
+    cashInDrawer: 0,
+    cashCollectedToday: 0,
+    cashPaidOutToday: 0,
+    lowStock: [],
+    expiring: [],
+    expireLevel: DEFAULT_SETTINGS.expire_level,
+    transactions: 0,
+  };
+}
+
 /**
  * Compute every dashboard metric for a pharmacy and date range.
  * Pure read — safe to call from a live query on any Dexie write.
