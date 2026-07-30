@@ -334,7 +334,14 @@ function KpiCard({
           {label}
         </div>
         {badge && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2 py-0.5 font-mono-data text-[11px] font-bold text-success-soft-foreground">
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-mono-data text-[11px] font-bold",
+              badge.tone === "danger"
+                ? "bg-danger-soft text-danger-soft-foreground"
+                : "bg-success-soft text-success-soft-foreground",
+            )}
+          >
             {badge.icon}
             {badge.label}
           </span>
