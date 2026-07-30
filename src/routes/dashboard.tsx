@@ -317,7 +317,14 @@ function RangeTabs({
                 : "text-muted-foreground hover:text-foreground",
             )}
           >
-            {r.label}
+            {r.id === "custom" ? (
+              <span className="inline-flex items-center justify-center gap-1.5">
+                {r.label}
+                <Calendar className="h-3.5 w-3.5" />
+              </span>
+            ) : (
+              r.label
+            )}
           </button>
         );
       })}
