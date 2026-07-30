@@ -157,28 +157,8 @@ export async function loadDashboard(
   const prev = previousWindow(win);
   const today = iso(now);
 
-  const empty: DashboardData = {
-    window: win,
-    financials: {
-      revenue: 0,
-      cogs: 0,
-      grossProfit: 0,
-      operatingExpenses: 0,
-      netProfit: 0,
-      margin: 0,
-      revenueChange: null,
-      previousRevenue: 0,
-    },
-    trend: [],
-    cashInDrawer: 0,
-    cashCollectedToday: 0,
-    cashPaidOutToday: 0,
-    lowStock: [],
-    expiring: [],
-    expireLevel: DEFAULT_SETTINGS.expire_level,
-    transactions: 0,
-  };
-  if (!isBrowser || !pharmacyId) return empty;
+  if (!isBrowser || !pharmacyId) return loadEmpty(range, now);
+
 
   const [sales, expenses, batches, settings] = await Promise.all([
     db.sales.where("pharmacy_id").equals(pharmacyId).toArray(),
