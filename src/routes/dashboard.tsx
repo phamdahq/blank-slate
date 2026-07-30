@@ -2,13 +2,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   TrendingUp,
+  TrendingDown,
   Wallet,
   Receipt,
   AlertTriangle,
   CalendarX,
   ArrowRight,
   Calendar,
-  FileText,
   Briefcase,
 } from "lucide-react";
 import {
@@ -23,6 +23,9 @@ import {
 import { RequireRole } from "@/components/require-role";
 import { AppShell } from "@/components/app-shell";
 import { cn } from "@/lib/utils";
+import { useSession } from "@/hooks/use-session";
+import { useDashboard } from "@/hooks/use-dashboard";
+import type { DashboardRange } from "@/services/dashboardService";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -43,57 +46,15 @@ export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
 });
 
-type Range = "today" | "week" | "month" | "custom";
-
-const ranges: { id: Range; label: string }[] = [
+const ranges: { id: DashboardRange; label: string }[] = [
   { id: "today", label: "Today" },
   { id: "week", label: "This Week" },
   { id: "month", label: "This Month" },
-  { id: "custom", label: "Custom" },
+  { id: "year", label: "This Year" },
 ];
 
-const revenueByRange: Record<Range, { date: string; value: number }[]> = {
-  today: [
-    { date: "06a", value: 1200 },
-    { date: "09a", value: 3800 },
-    { date: "12p", value: 6400 },
-    { date: "03p", value: 5100 },
-    { date: "06p", value: 7200 },
-    { date: "09p", value: 4300 },
-  ],
-  week: [
-    { date: "Mon", value: 18400 },
-    { date: "Tue", value: 21200 },
-    { date: "Wed", value: 17800 },
-    { date: "Thu", value: 24300 },
-    { date: "Fri", value: 29800 },
-    { date: "Sat", value: 31600 },
-    { date: "Sun", value: 19500 },
-  ],
-  month: [
-    { date: "Oct 08", value: 48200 },
-    { date: "Oct 09", value: 72100 },
-    { date: "Oct 10", value: 31400 },
-    { date: "Oct 11", value: 89800 },
-    { date: "Oct 12", value: 53600 },
-    { date: "Oct 13", value: 42100 },
-    { date: "Oct 14", value: 112800 },
-  ],
-  custom: [
-    { date: "Sep 25", value: 39400 },
-    { date: "Sep 30", value: 58200 },
-    { date: "Oct 05", value: 71200 },
-    { date: "Oct 10", value: 31400 },
-    { date: "Oct 14", value: 112800 },
-  ],
-};
-
-const rangeLabel: Record<Range, string> = {
-  today: "Today · Hourly",
-  week: "Last 7 days",
-  month: "Oct 08 – Oct 14",
-  custom: "Sep 25 – Oct 14",
-};
+const money = (n: number) =>
+  `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 function DashboardPage() {
   return (
@@ -104,9 +65,14 @@ function DashboardPage() {
 }
 
 function DashboardPageView() {
-  const [range, setRange] = useState<Range>("month");
-  const series = revenueByRange[range];
-  const avg = Math.round(series.reduce((s, p) => s + p.value, 0) / series.length);
+  const { pharmacyId } = useSession();
+  const [range, setRange] = useState<DashboardRange>("month");
+  const data = useDashboard(pharmacyId, range);
+  const { financials: f, trend } = data;
+  const avg = trend.length
+    ? Math.round(trend.reduce((s, p) => s + p.value, 0) / trend.length)
+    : 0;
+  const change = f.revenueChange;
 
   return (
     <AppShell>
@@ -118,61 +84,84 @@ function DashboardPageView() {
               Financial Reports
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Fiscal Year 2023–24 · Station 01 Balancing
+              {data.window.label} · {data.transactions.toLocaleString()} transactions
             </p>
           </div>
           <RangeTabs value={range} onChange={setRange} />
         </div>
 
         {/* Financial performance */}
-        <SectionHeader title="Financial Performance" right="Fiscal Year 2023-24" />
+        <SectionHeader title="Financial Performance" right={data.window.label} />
         <div className="mt-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <KpiCard
             label="Total Revenue (Net, Excl. VAT)"
-            value="$142,580.00"
-            hint="vs. $126,850 last month"
-            badge={{ tone: "success", label: "+12.4%", icon: <TrendingUp className="h-3.5 w-3.5" /> }}
+            value={money(f.revenue)}
+            hint={
+              f.previousRevenue > 0
+                ? `vs. ${money(f.previousRevenue)} previous period`
+                : "No comparable previous period"
+            }
+            badge={
+              change === null
+                ? undefined
+                : {
+                    tone: change >= 0 ? "success" : "danger",
+                    label: `${change >= 0 ? "+" : ""}${(change * 100).toFixed(1)}%`,
+                    icon:
+                      change >= 0 ? (
+                        <TrendingUp className="h-3.5 w-3.5" />
+                      ) : (
+                        <TrendingDown className="h-3.5 w-3.5" />
+                      ),
+                  }
+            }
           />
           <KpiCard
             label="COGS"
-            value="$96,954.00"
-            hint="Cost of goods sold · Est. margin 68%"
+            value={money(f.cogs)}
+            hint={`Cost of goods sold · Margin ${(f.margin * 100).toFixed(1)}%`}
           />
           <KpiCard
             label="Gross Profit"
-            value="$53,160.00"
+            value={money(f.grossProfit)}
             hint="Total Revenue − COGS"
           />
           <KpiCard
             variant="primary"
-            label="Net Profit (After Tax/Exp)"
-            value="$41,010.00"
-            hint="Healthy threshold reached"
+            label="Net Profit (After Expenses)"
+            value={money(f.netProfit)}
+            hint={`Gross Profit − ${money(f.operatingExpenses)} expenses`}
             icon={<Wallet className="h-5 w-5" />}
           />
         </div>
 
         {/* Operational cash */}
-        <SectionHeader title="Operational Cash" right="Station 01 Balancing" />
+        <SectionHeader title="Operational Cash" right="Live register state" />
         <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <OpCard
             icon={<Receipt className="h-4 w-4" />}
             label="Cash in Drawer"
-            value="$1,450.00"
-            hint="Closing balance · Today"
+            value={money(data.cashInDrawer)}
+            hint={`${money(data.cashCollectedToday)} collected − ${money(
+              data.cashPaidOutToday,
+            )} paid out · Today`}
           />
           <OpCard
             icon={<Briefcase className="h-4 w-4" />}
             label="Operating Expenses"
-            value="$12,450.00"
-            hint="Salary, rent & utilities · MTD"
+            value={money(f.operatingExpenses)}
+            hint={`All logged expenses · ${data.window.label}`}
           />
           <AlertCard
             tone="warning"
             icon={<AlertTriangle className="h-4 w-4" />}
             label="Low Stock Alerts"
-            value="3 Items"
-            status="Requires Action"
+            value={`${data.lowStock.length} ${data.lowStock.length === 1 ? "Item" : "Items"}`}
+            status={data.lowStock.length ? "Requires Action" : "All levels healthy"}
+            detail={data.lowStock
+              .slice(0, 3)
+              .map((i) => `${i.name} · ${i.stock} left`)
+              .join(" · ")}
             to="/inventory"
             cta="View all inventory"
           />
@@ -180,70 +169,84 @@ function DashboardPageView() {
             tone="danger"
             icon={<CalendarX className="h-4 w-4" />}
             label="Expiring Soon"
-            value="2 Items"
-            status="Critical"
+            value={`${data.expiring.length} ${data.expiring.length === 1 ? "Batch" : "Batches"}`}
+            status={
+              data.expiring.length
+                ? "Critical"
+                : `Nothing within ${data.expireLevel} days`
+            }
+            detail={data.expiring
+              .slice(0, 3)
+              .map((b) => `${b.name} · ${b.daysLeft}d`)
+              .join(" · ")}
             to="/inventory"
             cta="Run disposal report"
           />
         </div>
 
-
         {/* Revenue trend */}
-        <SectionHeader title="Weekly Revenue Trend" right={rangeLabel[range]} />
+        <SectionHeader title="Revenue Trend" right={data.window.label} />
         <div className="mt-3 rounded-xl border border-border bg-surface p-4 shadow-elev-sm sm:p-6">
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Calendar className="h-3.5 w-3.5" />
-              <span className="font-mono-data">{rangeLabel[range]}</span>
+              <span className="font-mono-data">{data.window.label}</span>
             </div>
             <div className="rounded-full bg-primary-soft px-3 py-1 font-mono-data text-[11px] font-semibold text-primary-soft-foreground">
-              Avg: ${avg.toLocaleString()}/day
+              Avg: ${avg.toLocaleString()}/{range === "year" ? "mo" : "day"}
             </div>
           </div>
           <div className="h-[280px] w-full sm:h-[340px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={series} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="revFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.28} />
-                    <stop offset="100%" stopColor="var(--primary)" stopOpacity={0.02} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                <XAxis
-                  dataKey="date"
-                  tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
-                  tickLine={false}
-                  axisLine={false}
-                  tickFormatter={(v) =>
-                    v >= 1000 ? `$${Math.round(v / 1000)}k` : `$${v}`
-                  }
-                />
-                <Tooltip
-                  contentStyle={{
-                    background: "var(--surface)",
-                    border: "1px solid var(--border)",
-                    borderRadius: 10,
-                    fontSize: 12,
-                  }}
-                  formatter={(v: number) => [`$${v.toLocaleString()}`, "Revenue"]}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="value"
-                  stroke="var(--primary)"
-                  strokeWidth={2.5}
-                  fill="url(#revFill)"
-                  dot={{ r: 4, fill: "var(--primary)", strokeWidth: 0 }}
-                  activeDot={{ r: 6 }}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+            {trend.length === 0 ? (
+              <div className="grid h-full place-items-center text-sm text-muted-foreground">
+                No sales recorded in this period yet.
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={trend} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="revFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.28} />
+                      <stop offset="100%" stopColor="var(--primary)" stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                  <XAxis
+                    dataKey="date"
+                    tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
+                    tickLine={false}
+                    axisLine={false}
+                    minTickGap={16}
+                  />
+                  <YAxis
+                    tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(v) =>
+                      v >= 1000 ? `$${Math.round(v / 1000)}k` : `$${v}`
+                    }
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      background: "var(--surface)",
+                      border: "1px solid var(--border)",
+                      borderRadius: 10,
+                      fontSize: 12,
+                    }}
+                    formatter={(v: number) => [money(v), "Revenue"]}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="value"
+                    stroke="var(--primary)"
+                    strokeWidth={2.5}
+                    fill="url(#revFill)"
+                    dot={{ r: 4, fill: "var(--primary)", strokeWidth: 0 }}
+                    activeDot={{ r: 6 }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
       </div>
@@ -251,7 +254,14 @@ function DashboardPageView() {
   );
 }
 
-function RangeTabs({ value, onChange }: { value: Range; onChange: (r: Range) => void }) {
+function RangeTabs({
+  value,
+  onChange,
+}: {
+  value: DashboardRange;
+  onChange: (r: DashboardRange) => void;
+}) {
+
   return (
     <div className="inline-flex w-full items-center rounded-full border border-border bg-surface p-1 shadow-elev-sm sm:w-auto">
       {ranges.map((r) => {
@@ -300,7 +310,7 @@ function KpiCard({
   label: string;
   value: string;
   hint?: string;
-  badge?: { tone: "success"; label: string; icon?: React.ReactNode };
+  badge?: { tone: "success" | "danger"; label: string; icon?: React.ReactNode };
   variant?: "default" | "primary";
   icon?: React.ReactNode;
 }) {
@@ -324,7 +334,14 @@ function KpiCard({
           {label}
         </div>
         {badge && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2 py-0.5 font-mono-data text-[11px] font-bold text-success-soft-foreground">
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-mono-data text-[11px] font-bold",
+              badge.tone === "danger"
+                ? "bg-danger-soft text-danger-soft-foreground"
+                : "bg-success-soft text-success-soft-foreground",
+            )}
+          >
             {badge.icon}
             {badge.label}
           </span>
@@ -390,6 +407,7 @@ function AlertCard({
   label,
   value,
   status,
+  detail,
   cta,
   to,
 }: {
@@ -398,6 +416,7 @@ function AlertCard({
   label: string;
   value: string;
   status: string;
+  detail?: string;
   cta: string;
   to: "/inventory";
 }) {
@@ -428,6 +447,10 @@ function AlertCard({
       >
         {status}
       </div>
+      {detail && (
+        <div className="mt-2 line-clamp-2 text-[11px] text-subtle-foreground">{detail}</div>
+      )}
+
       <div className="mt-3 border-t border-border/70 pt-3">
         <Link
           to={to}

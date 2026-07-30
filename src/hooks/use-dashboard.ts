@@ -1,0 +1,28 @@
+import { useEffect } from "react";
+import { useLiveQuery } from "dexie-react-hooks";
+import * as dashboardService from "@/services/dashboardService";
+import type { DashboardData, DashboardRange } from "@/services/dashboardService";
+import { settingsRepo } from "@/db/pharmacy-config";
+
+/**
+ * Live dashboard metrics for a pharmacy and date range. Recomputes on any
+ * local write (sale, expense, batch) and on any realtime pull from Supabase.
+ */
+export function useDashboard(
+  pharmacyId: string | null | undefined,
+  range: DashboardRange,
+): DashboardData {
+  useEffect(() => {
+    if (pharmacyId) void settingsRepo.refresh(pharmacyId);
+  }, [pharmacyId]);
+
+  const fallback = dashboardService.loadEmpty(range);
+
+  return (
+    useLiveQuery(
+      () => dashboardService.loadDashboard(pharmacyId, range),
+      [pharmacyId, range],
+      fallback,
+    ) ?? fallback
+  );
+}
