@@ -74,7 +74,8 @@ function DashboardPage() {
 function DashboardPageView() {
   const { pharmacyId } = useSession();
   const [range, setRange] = useState<DashboardRange>("month");
-  const data = useDashboard(pharmacyId, range);
+  const [custom, setCustom] = useState(() => ({ from: todayIso(), to: todayIso() }));
+  const data = useDashboard(pharmacyId, range, range === "custom" ? custom : null);
   const { financials: f, trend } = data;
   const avg = trend.length
     ? Math.round(trend.reduce((s, p) => s + p.value, 0) / trend.length)
@@ -85,7 +86,7 @@ function DashboardPageView() {
     <AppShell>
       <div className="mx-auto w-full max-w-[1280px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         {/* Page header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight sm:text-[28px]">
               Financial Reports
@@ -94,8 +95,39 @@ function DashboardPageView() {
               {data.window.label} · {data.transactions.toLocaleString()} transactions
             </p>
           </div>
-          <RangeTabs value={range} onChange={setRange} />
+          <div className="flex flex-col items-stretch gap-2 sm:items-end">
+            <RangeTabs value={range} onChange={setRange} />
+            {range === "custom" && (
+              <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 shadow-elev-sm">
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                  From
+                  <input
+                    type="date"
+                    value={custom.from}
+                    max={custom.to}
+                    onChange={(e) =>
+                      setCustom((c) => ({ ...c, from: e.target.value || c.from }))
+                    }
+                    className="rounded-md border border-border bg-surface-low px-2 py-1 font-mono-data text-xs text-foreground outline-none focus:border-primary"
+                  />
+                </label>
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                  To
+                  <input
+                    type="date"
+                    value={custom.to}
+                    min={custom.from}
+                    onChange={(e) =>
+                      setCustom((c) => ({ ...c, to: e.target.value || c.to }))
+                    }
+                    className="rounded-md border border-border bg-surface-low px-2 py-1 font-mono-data text-xs text-foreground outline-none focus:border-primary"
+                  />
+                </label>
+              </div>
+            )}
+          </div>
         </div>
+
 
         {/* Financial performance */}
         <SectionHeader title="Financial Performance" right={data.window.label} />
