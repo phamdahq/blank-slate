@@ -68,6 +68,10 @@ function ReportsPage() {
 function ReportsPageView() {
   const [tab, setTab] = useState<TopTab>("sales");
   const [range, setRange] = useState<RangeKey>("month");
+  const today = new Date().toISOString().slice(0, 10);
+  const [custom, setCustom] = useState<CustomRange>({ from: today, to: today });
+
+  const customRange = range === "custom" ? custom : null;
 
   return (
     <AppShell>
@@ -82,7 +86,37 @@ function ReportsPageView() {
               Monitor clinical performance and fiscal health in real-time.
             </p>
           </div>
-          <RangeSwitcher value={range} onChange={setRange} />
+          <div className="flex flex-col items-start gap-2 sm:items-end">
+            <RangeSwitcher value={range} onChange={setRange} />
+            {range === "custom" && (
+              <div className="flex flex-wrap items-center gap-2">
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                  From
+                  <input
+                    type="date"
+                    value={custom.from}
+                    max={custom.to}
+                    onChange={(e) =>
+                      setCustom((c) => ({ ...c, from: e.target.value || c.from }))
+                    }
+                    className="h-8 rounded-md border border-border bg-surface px-2 font-mono-data text-xs text-foreground outline-none focus:border-primary"
+                  />
+                </label>
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                  To
+                  <input
+                    type="date"
+                    value={custom.to}
+                    min={custom.from}
+                    onChange={(e) =>
+                      setCustom((c) => ({ ...c, to: e.target.value || c.to }))
+                    }
+                    className="h-8 rounded-md border border-border bg-surface px-2 font-mono-data text-xs text-foreground outline-none focus:border-primary"
+                  />
+                </label>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Top tabs */}
@@ -107,14 +141,15 @@ function ReportsPageView() {
         </div>
 
         <div className="mt-6">
-          {tab === "sales" && <SalesIntelligence />}
-          {tab === "inventory" && <InventoryHealth />}
-          {tab === "financials" && <FinancialsLog />}
+          {tab === "sales" && <SalesIntelligence range={range} custom={customRange} />}
+          {tab === "inventory" && <InventoryHealth range={range} custom={customRange} />}
+          {tab === "financials" && <FinancialsLog range={range} custom={customRange} />}
         </div>
       </div>
     </AppShell>
   );
 }
+
 
 /* ----------------------- shared ----------------------- */
 
