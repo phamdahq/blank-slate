@@ -82,10 +82,11 @@ export function useCatalog(pharmacyId?: string | null): Medication[] {
   return (
     useLiveQuery(
       async () => {
-        if (!isBrowser) return [];
-        const batches = pharmacyId
-          ? await db.batches.where("pharmacy_id").equals(pharmacyId).toArray()
-          : await db.batches.toArray();
+        // Never fall back to *all* tenants' batches: while the session is
+        // still resolving, pharmacyId is null and rendering everything looks
+        // like the global catalog flashing into the inventory page.
+        if (!isBrowser || !pharmacyId) return [];
+        const batches = await db.batches.where("pharmacy_id").equals(pharmacyId).toArray();
         if (batches.length === 0) return [];
 
         const productIds = [...new Set(batches.map((b) => b.product_id))];

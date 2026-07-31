@@ -34,7 +34,6 @@ CREATE TABLE pharmacies (
   -- Subscription/Billing Fields
   tier TEXT DEFAULT 'basic' CHECK (tier IN ('basic', 'pro', 'enterprise')),
   subscription_status TEXT DEFAULT 'trial' CHECK (subscription_status IN ('trial', 'active', 'suspended', 'expired')),
-  billing_cycle_day INTEGER DEFAULT 1, -- The day of the month they pay (e.g., 5th)
   next_payment_due DATE,              -- The actual calendar date their next payment is due
   
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
@@ -144,4 +143,11 @@ CREATE TABLE platform_payouts (
     transaction_reference TEXT UNIQUE NOT NULL,
     status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'verified', 'rejected')),
     paid_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+create table cities (
+  id uuid default gen_random_uuid() primary key,
+  name text not null unique,
+  country text not null default 'Ethiopia',
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );

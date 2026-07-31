@@ -53,7 +53,7 @@ function InventoryPage() {
 }
 
 function InventoryView() {
-  const { pharmacyId } = useSession();
+  const { pharmacyId, loading } = useSession();
   const medications = useCatalog(pharmacyId);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<(typeof categories)[number]>("All");
@@ -84,6 +84,16 @@ function InventoryView() {
       <Plus className="h-[18px] w-[18px]" />
     </Link>
   );
+
+  if (loading || !pharmacyId) {
+    return (
+      <AppShellWithSlot topBarSlot={headerAdd} hideBell>
+        <div className="grid min-h-[60vh] place-items-center px-4">
+          <p className="text-sm text-muted-foreground">Loading inventory…</p>
+        </div>
+      </AppShellWithSlot>
+    );
+  }
 
   return (
     <AppShellWithSlot topBarSlot={headerAdd} hideBell>

@@ -71,6 +71,27 @@ export async function markRecurringPaid(source: Expense): Promise<Expense> {
   });
 }
 
+/** Delete a single expense entry (local first, queued for Supabase). */
+export async function deleteExpense(id: string): Promise<void> {
+  await expensesRepo.remove(id);
+}
+
+/**
+ * Remove an entire recurring series (every occurrence sharing the name) so it
+ * disappears from the upcoming list.
+ */
+export async function deleteRecurringSeries(
+  pharmacyId: string,
+  name: string,
+): Promise<void> {
+  const rows = await expensesRepo.list(pharmacyId);
+  const key = name.trim().toLowerCase();
+  const targets = rows.filter(
+    (r) => r.type === "Recurring" && r.name.trim().toLowerCase() === key,
+  );
+  for (const row of targets) await expensesRepo.remove(row.id);
+}
+
 /** Same day next month, clamped to the end of a shorter month. */
 export function nextDueDate(date: string): string {
   const base = new Date(`${date}T00:00:00`);

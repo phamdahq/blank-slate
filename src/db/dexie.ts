@@ -121,6 +121,7 @@ export type OutboxOp =
   | { kind: "sales.insert"; row: SaleRow }
   | { kind: "batches.upsert"; row: Batch }
   | { kind: "expenses.insert"; row: Expense }
+  | { kind: "expenses.delete"; id: string }
   | { kind: "pharmacy_settings.upsert"; row: PharmacySettings }
   | { kind: "users.update"; id: string; patch: Partial<UserRow> };
 

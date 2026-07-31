@@ -195,4 +195,10 @@ export const expensesRepo = {
   list(pharmacy_id: string) {
     return db.expenses.where("pharmacy_id").equals(pharmacy_id).toArray();
   },
+  async remove(id: string): Promise<void> {
+    await db.transaction("rw", db.expenses, db.outbox, async () => {
+      await db.expenses.delete(id);
+      await enqueue({ kind: "expenses.delete", id });
+    });
+  },
 };

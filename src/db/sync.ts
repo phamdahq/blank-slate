@@ -265,6 +265,11 @@ async function applyOp(op: OutboxOp): Promise<void> {
       if (error) throw new Error(error.message);
       return;
     }
+    case "expenses.delete": {
+      const { error } = await supabase.from("expenses").delete().eq("id", op.id);
+      if (error) throw new Error(error.message);
+      return;
+    }
     case "pharmacy_settings.upsert": {
       const { error } = await supabase
         .from("pharmacy_settings")

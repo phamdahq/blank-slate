@@ -47,13 +47,13 @@ export async function cachedPharmacyId(): Promise<string | null> {
 // ---------- Post-login routing ----------
 
 export type PostLoginTarget =
-  | { kind: "ok"; to: "/register" | "/dashboard" | "/pos"; role: string; pharmacyId: string | null }
+  | { kind: "ok"; to: "/admin" | "/dashboard" | "/pos"; role: string; pharmacyId: string | null }
   | { kind: "error"; message: string };
 
 /**
  * Decides where a user lands right after sign-in.
  *
- * - platform admins go to the tenant registration/setup page
+ * - platform admins go to the master console dashboard
  * - pharmacy `owner`s goes to his pharmacy with full acces
  * - any other associated user goes to their pharmacy workspace (POS)
  * - unknown users, or users with no tenant, get an explicit permission notice
@@ -71,7 +71,7 @@ export async function resolvePostLoginTarget(userId: string): Promise<PostLoginT
       return { kind: "error", message: "This platform account has been deactivated." };
     }
     if (admin.role === "platform_owner") {
-      return { kind: "ok", to: "/register", role: "platform_owner", pharmacyId: null };
+      return { kind: "ok", to: "/admin", role: "platform_owner", pharmacyId: null };
     }
     return { kind: "ok", to: "/dashboard", role: admin.role, pharmacyId: null };
   }

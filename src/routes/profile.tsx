@@ -774,35 +774,37 @@ function StaffManagement({
                   </div>
                 </div>
                 <div className="flex items-center gap-2 sm:justify-end">
-                  <span
-                    className={cn(
-                      "inline-flex h-6 items-center rounded-full px-2 font-mono-data text-[10px] font-bold uppercase tracking-wider",
-                      u.is_active
-                        ? "bg-success-soft text-success-soft-foreground"
-                        : "bg-muted text-muted-foreground",
-                    )}
-                  >
-                    {u.is_active ? "Active" : "Inactive"}
-                  </span>
-                  <button
-                    disabled={busyId === u.id || isSelf || u.role === "owner"}
-                    onClick={() => void toggle(u)}
-                    className={cn(
-                      "inline-flex h-8 items-center rounded-md px-3 text-xs font-semibold transition-colors disabled:opacity-50",
-                      u.is_active
-                        ? "bg-danger-soft text-danger hover:bg-danger hover:text-danger-foreground"
-                        : "bg-success-soft text-success-soft-foreground hover:opacity-90",
-                    )}
-                    title={
-                      isSelf
-                        ? "You cannot deactivate yourself"
-                        : u.role === "owner"
-                          ? "Owners cannot be deactivated here"
-                          : undefined
-                    }
-                  >
-                    {busyId === u.id ? "…" : u.is_active ? "Deactivate" : "Activate"}
-                  </button>
+                  {u.role === "owner" || isSelf ? (
+                    <span
+                      className={cn(
+                        "inline-flex h-8 items-center rounded-md px-3 text-xs font-semibold",
+                        u.is_active
+                          ? "bg-success-soft text-success-soft-foreground"
+                          : "bg-muted text-muted-foreground",
+                      )}
+                      title={
+                        isSelf
+                          ? "You cannot deactivate yourself"
+                          : "Owners cannot be deactivated here"
+                      }
+                    >
+                      {u.is_active ? "Active" : "Inactive"}
+                    </span>
+                  ) : (
+                    <button
+                      disabled={busyId === u.id}
+                      onClick={() => void toggle(u)}
+                      className={cn(
+                        "inline-flex h-8 items-center rounded-md px-3 text-xs font-semibold transition-colors disabled:opacity-50",
+                        u.is_active
+                          ? "bg-success-soft text-success-soft-foreground hover:bg-danger-soft hover:text-danger"
+                          : "bg-muted text-muted-foreground hover:bg-success-soft hover:text-success-soft-foreground",
+                      )}
+                      title={u.is_active ? "Click to deactivate" : "Click to activate"}
+                    >
+                      {busyId === u.id ? "…" : u.is_active ? "Active" : "Inactive"}
+                    </button>
+                  )}
                 </div>
               </li>
             );
