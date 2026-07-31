@@ -1272,7 +1272,7 @@ function FinancialsLog({
               {rangeTotals.rows.length === 0 && (
                 <tr>
                   <td colSpan={4} className="px-5 py-10 text-center text-muted-foreground">
-                    No expenses recorded yet.
+                    No expenses recorded in this period.
                   </td>
                 </tr>
               )}
