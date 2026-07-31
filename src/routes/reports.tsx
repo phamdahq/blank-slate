@@ -36,9 +36,13 @@ import {
 } from "@/lib/inventory-health";
 import { useSession } from "@/hooks/use-session";
 import { useExpenses } from "@/hooks/use-expenses";
+import { useSalesIntelligence, useVelocity } from "@/hooks/use-reports";
+import type { CustomRange } from "@/services/reportsService";
+import { resolveRange } from "@/services/dashboardService";
 import * as expenseService from "@/services/expenseService";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+
 
 export const Route = createFileRoute("/reports")({
   head: () => ({
@@ -68,6 +72,10 @@ function ReportsPage() {
 function ReportsPageView() {
   const [tab, setTab] = useState<TopTab>("sales");
   const [range, setRange] = useState<RangeKey>("month");
+  const today = new Date().toISOString().slice(0, 10);
+  const [custom, setCustom] = useState<CustomRange>({ from: today, to: today });
+
+  const customRange = range === "custom" ? custom : null;
 
   return (
     <AppShell>
@@ -82,7 +90,37 @@ function ReportsPageView() {
               Monitor clinical performance and fiscal health in real-time.
             </p>
           </div>
-          <RangeSwitcher value={range} onChange={setRange} />
+          <div className="flex flex-col items-start gap-2 sm:items-end">
+            <RangeSwitcher value={range} onChange={setRange} />
+            {range === "custom" && (
+              <div className="flex flex-wrap items-center gap-2">
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                  From
+                  <input
+                    type="date"
+                    value={custom.from}
+                    max={custom.to}
+                    onChange={(e) =>
+                      setCustom((c) => ({ ...c, from: e.target.value || c.from }))
+                    }
+                    className="h-8 rounded-md border border-border bg-surface px-2 font-mono-data text-xs text-foreground outline-none focus:border-primary"
+                  />
+                </label>
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                  To
+                  <input
+                    type="date"
+                    value={custom.to}
+                    min={custom.from}
+                    onChange={(e) =>
+                      setCustom((c) => ({ ...c, to: e.target.value || c.to }))
+                    }
+                    className="h-8 rounded-md border border-border bg-surface px-2 font-mono-data text-xs text-foreground outline-none focus:border-primary"
+                  />
+                </label>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Top tabs */}
@@ -107,14 +145,15 @@ function ReportsPageView() {
         </div>
 
         <div className="mt-6">
-          {tab === "sales" && <SalesIntelligence />}
-          {tab === "inventory" && <InventoryHealth />}
-          {tab === "financials" && <FinancialsLog />}
+          {tab === "sales" && <SalesIntelligence range={range} custom={customRange} />}
+          {tab === "inventory" && <InventoryHealth range={range} custom={customRange} />}
+          {tab === "financials" && <FinancialsLog range={range} custom={customRange} />}
         </div>
       </div>
     </AppShell>
   );
 }
+
 
 /* ----------------------- shared ----------------------- */
 
@@ -251,44 +290,40 @@ function KpiCard({
 
 /* ----------------------- Sales Intelligence ----------------------- */
 
-const trendData = [
-  { day: "Mon", revenue: 6200, gross: 3800, net: 2400 },
-  { day: "Tue", revenue: 4800, gross: 2900, net: 1800 },
-  { day: "Wed", revenue: 6800, gross: 4300, net: 2600 },
-  { day: "Thu", revenue: 5200, gross: 3400, net: 2100 },
-  { day: "Fri", revenue: 7400, gross: 4900, net: 3000 },
-  { day: "Sat", revenue: 2100, gross: 1300, net: 500 },
-  { day: "Sun", revenue: 3600, gross: 2200, net: 1200 },
-];
+const compactMoney = (n: number) => {
+  const abs = Math.abs(n);
+  if (abs >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
+  if (abs >= 1_000) return `$${(n / 1_000).toFixed(1)}k`;
+  return `$${n.toFixed(0)}`;
+};
 
-const valuationData = [
-  { name: "Prescription", value: 65, color: "#2563eb" },
-  { name: "OTC Medicine", value: 22, color: "#10b981" },
-  { name: "Medical Equipment", value: 13, color: "#b45309" },
-];
-const profitData = [
-  { name: "Prescription", value: 42, color: "#2563eb" },
-  { name: "OTC Medicine", value: 35, color: "#10b981" },
-  { name: "Medical Equipment", value: 23, color: "#b45309" },
-];
+function SalesIntelligence({
+  range,
+  custom,
+}: {
+  range: RangeKey;
+  custom: CustomRange | null;
+}) {
+  const { pharmacyId } = useSession();
+  const data = useSalesIntelligence(pharmacyId, range, custom);
 
-function SalesIntelligence() {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard
           label="Total Stock Value"
-          value="$248.5k"
+          value={compactMoney(data.stockSellValue)}
           icon={Wallet}
-          delta={{ value: "4.1%", positive: true }}
           hint={
             <>
               Total Sell Value
               <div className="mt-2 border-t border-border pt-2">
                 Purchase Value:{" "}
-                <span className="font-mono-data text-foreground">$165.2k</span>{" "}
+                <span className="font-mono-data text-foreground">
+                  {compactMoney(data.stockCostValue)}
+                </span>{" "}
                 <span className="font-mono-data text-secondary-soft-foreground">
-                  66.5%
+                  {(data.costRatio * 100).toFixed(1)}%
                 </span>
               </div>
             </>
@@ -296,48 +331,64 @@ function SalesIntelligence() {
         />
         <KpiCard
           label="Stock Turnover Rate"
-          value="8.4x"
+          value={`${data.turnover.toFixed(1)}x`}
           icon={RefreshCw}
-          delta={{ value: "12%", positive: true }}
           hint={
             <>
               <span className="font-mono-data text-primary">
-                EFFICIENCY SCORE: HIGH
+                ANNUALISED FROM {data.window.label}
               </span>
-              <div className="mt-1">Industry Avg: 6.2x</div>
+              <div className="mt-1">
+                COGS {compactMoney(data.cogs)} · Stock {compactMoney(data.stockCostValue)}
+              </div>
             </>
           }
         />
         <KpiCard
           label="Waste/Expiry Value"
-          value="$1,402"
+          value={compactMoney(data.wasteValue)}
           icon={Trash2}
           iconTone="danger"
-          delta={{ value: "8%", positive: false }}
           hint={
             <>
-              <span className="font-mono-data text-danger">34 ITEMS FLAGGED</span>
-              <div className="mt-1">Current Month Projection</div>
+              <span className="font-mono-data text-danger">
+                {data.wasteItems} BATCHES FLAGGED
+              </span>
+              <div className="mt-1">Expired on or before {data.window.end}</div>
             </>
           }
         />
         <KpiCard
           label="COGS"
-          value="$96,954"
+          value={compactMoney(data.cogs)}
           icon={FileText}
           iconTone="muted"
           hint={
             <>
-              Inventory Investment
-              <div className="mt-1">Est. Margin 68%</div>
+              Cost of goods sold · {data.transactions} transactions
+              <div className="mt-1">Margin {(data.margin * 100).toFixed(1)}%</div>
             </>
           }
         />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <DonutCard title="Valuation by Category" centerLabel="TOTAL" centerValue="$248k" data={valuationData} suffix="%" />
-        <DonutCard title="Profit Percentage by Category" subtitle="This Week" centerLabel="PROFIT" centerValue="100%" data={profitData} suffix="%" />
+        <DonutCard
+          title="Valuation by Category"
+          subtitle="Current stock at sell value"
+          centerLabel="TOTAL"
+          centerValue={compactMoney(data.stockSellValue)}
+          data={data.valuationByCategory}
+          suffix="%"
+        />
+        <DonutCard
+          title="Profit Percentage by Category"
+          subtitle={data.window.label}
+          centerLabel="GROSS PROFIT"
+          centerValue={compactMoney(data.grossProfit)}
+          data={data.profitByCategory}
+          suffix="%"
+        />
       </div>
 
       <div className="rounded-xl border border-border bg-surface p-5 shadow-elev-sm">
@@ -345,16 +396,29 @@ function SalesIntelligence() {
           <div>
             <h2 className="text-lg font-semibold">Profit Performance Trend</h2>
             <p className="text-sm text-muted-foreground">
-              Comparative analysis of revenue and profitability (Last 7 Days)
+              Revenue, gross and net profit · {data.window.label}
             </p>
+          </div>
+          <div className="text-right">
+            <div className="font-mono-data text-[11px] font-semibold uppercase tracking-wider text-subtle-foreground">
+              Net profit
+            </div>
+            <div
+              className={cn(
+                "text-xl font-bold",
+                data.netProfit < 0 ? "text-danger" : "text-foreground",
+              )}
+            >
+              {compactMoney(data.netProfit)}
+            </div>
           </div>
         </div>
         <div className="mt-4 h-[320px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={trendData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+            <LineChart data={data.trend} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
               <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-              <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v / 1000}k`} />
+              <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => compactMoney(Number(v))} />
               <Tooltip
                 contentStyle={{
                   background: "hsl(var(--surface))",
@@ -376,6 +440,7 @@ function SalesIntelligence() {
   );
 }
 
+
 function DonutCard({
   title,
   subtitle,
@@ -389,6 +454,7 @@ function DonutCard({
   centerLabel: string;
   centerValue: string;
   data: { name: string; value: number; color: string }[];
+
   suffix?: string;
 }) {
   return (
@@ -397,7 +463,18 @@ function DonutCard({
         <h3 className="text-lg font-semibold">{title}</h3>
         {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
       </div>
-      <div className="mt-4 grid grid-cols-1 items-center gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      {data.length === 0 && (
+        <p className="mt-8 pb-8 text-center text-sm text-muted-foreground">
+          No data for this period.
+        </p>
+      )}
+      <div
+        className={cn(
+          "mt-4 grid grid-cols-1 items-center gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]",
+          data.length === 0 && "hidden",
+        )}
+      >
+
         <div className="relative h-[220px]">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -448,7 +525,14 @@ function DonutCard({
 
 type SubTab = "restock" | "expiry" | "stagnant" | "best";
 
-function InventoryHealth() {
+function InventoryHealth({
+  range,
+  custom,
+}: {
+  range: RangeKey;
+  custom: CustomRange | null;
+}) {
+
   const [sub, setSub] = useState<SubTab>("restock");
   const [order, setOrder] = useState<string[]>([]);
 
@@ -481,7 +565,7 @@ function InventoryHealth() {
       {sub === "restock" && <RestockTable order={order} onToggle={toggleOrder} />}
       {sub === "expiry" && <ExpiryTable />}
       {sub === "stagnant" && <StagnantTable />}
-      {sub === "best" && <BestSellersTable />}
+      {sub === "best" && <BestSellersTable range={range} custom={custom} />}
     </div>
   );
 }
@@ -836,28 +920,36 @@ function StagnantTable() {
 }
 
 /* ---- Best sellers ---- */
-function BestSellersTable() {
+function BestSellersTable({
+  range,
+  custom,
+}: {
+  range: RangeKey;
+  custom: CustomRange | null;
+}) {
   const { pharmacyId } = useSession();
   const medications = useCatalog(pharmacyId);
   const stats = useSalesStats(pharmacyId);
+  const velocity = useVelocity(pharmacyId, range, custom);
 
   const rows = useMemo(
     () =>
       medications
         .map((m) => {
+          const v = velocity.get(m.id);
           const s = stats.get(m.id);
-          const units = s?.units ?? 0;
           const prev = s?.unitsPrev30 ?? 0;
           const curr = s?.units30 ?? 0;
           const growth =
             prev === 0 ? (curr > 0 ? 100 : 0) : Math.round(((curr - prev) / prev) * 100);
-          return { med: m, units, revenue: s?.revenue ?? 0, growth };
+          return { med: m, units: v?.units ?? 0, revenue: v?.revenue ?? 0, growth };
         })
         .filter((r) => r.units > 0)
         .sort((a, b) => b.units - a.units)
         .slice(0, 10),
-    [medications, stats],
+    [medications, velocity, stats],
   );
+
 
   return (
     <TableShell
@@ -940,9 +1032,16 @@ const prettyDate = (iso: string) => {
   return d.toLocaleDateString(undefined, { month: "short", day: "2-digit", year: "numeric" });
 };
 
-function FinancialsLog() {
+function FinancialsLog({
+  range,
+  custom,
+}: {
+  range: RangeKey;
+  custom: CustomRange | null;
+}) {
   const { pharmacyId } = useSession();
   const expenses = useExpenses(pharmacyId);
+  const financials = useSalesIntelligence(pharmacyId, range, custom);
   const [form, setForm] = useState({
     name: "",
     date: "",
@@ -955,12 +1054,16 @@ function FinancialsLog() {
 
   const upcoming = useMemo(() => expenseService.upcomingRecurring(expenses), [expenses]);
 
-  const monthTotals = useMemo(() => {
-    const now = new Date();
-    const from = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
-    const to = expenseService.todayIso();
-    return expenseService.totalsInRange(expenses, from, to);
-  }, [expenses]);
+  const win = useMemo(
+    () => resolveRange(range, new Date(), custom),
+    [range, custom?.from, custom?.to],
+  );
+
+  const rangeTotals = useMemo(
+    () => expenseService.totalsInRange(expenses, win.start, win.end),
+    [expenses, win.start, win.end],
+  );
+
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1007,11 +1110,15 @@ function FinancialsLog() {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Expenses this month" value={money(monthTotals.total)} />
-        <StatCard label="Recurring (MTD)" value={money(monthTotals.recurring)} />
-        <StatCard label="One-time (MTD)" value={money(monthTotals.oneTime)} />
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <StatCard label={`Revenue · ${win.label}`} value={money(financials.revenue)} />
+        <StatCard label="Gross profit" value={money(financials.grossProfit)} />
+        <StatCard label="Net profit" value={money(financials.netProfit)} />
+        <StatCard label="Expenses in range" value={money(rangeTotals.total)} />
+        <StatCard label="Recurring in range" value={money(rangeTotals.recurring)} />
+        <StatCard label="One-time in range" value={money(rangeTotals.oneTime)} />
       </div>
+
 
       <div className="max-w-md">
         <form
@@ -1150,7 +1257,7 @@ function FinancialsLog() {
 
       <div className="rounded-xl border border-border bg-surface shadow-elev-sm">
         <div className="border-b border-border px-5 py-4">
-          <h3 className="text-lg font-semibold">Expense Log</h3>
+          <h3 className="text-lg font-semibold">Expense Log · {win.label}</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[520px] text-sm">
@@ -1163,7 +1270,7 @@ function FinancialsLog() {
               </tr>
             </thead>
             <tbody>
-              {expenses.map((row) => (
+              {rangeTotals.rows.map((row) => (
                 <tr key={row.id} className="border-t border-border">
                   <Td className="font-mono-data text-muted-foreground">{prettyDate(row.date)}</Td>
                   <Td className="font-medium text-foreground">{row.name}</Td>
@@ -1173,10 +1280,10 @@ function FinancialsLog() {
                   </Td>
                 </tr>
               ))}
-              {expenses.length === 0 && (
+              {rangeTotals.rows.length === 0 && (
                 <tr>
                   <td colSpan={4} className="px-5 py-10 text-center text-muted-foreground">
-                    No expenses recorded yet.
+                    No expenses recorded in this period.
                   </td>
                 </tr>
               )}
