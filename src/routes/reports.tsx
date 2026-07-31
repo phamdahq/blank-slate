@@ -454,6 +454,7 @@ function DonutCard({
   centerLabel: string;
   centerValue: string;
   data: { name: string; value: number; color: string }[];
+
   suffix?: string;
 }) {
   return (
@@ -513,7 +514,14 @@ function DonutCard({
 
 type SubTab = "restock" | "expiry" | "stagnant" | "best";
 
-function InventoryHealth() {
+function InventoryHealth({
+  range,
+  custom,
+}: {
+  range: RangeKey;
+  custom: CustomRange | null;
+}) {
+
   const [sub, setSub] = useState<SubTab>("restock");
   const [order, setOrder] = useState<string[]>([]);
 
@@ -546,7 +554,7 @@ function InventoryHealth() {
       {sub === "restock" && <RestockTable order={order} onToggle={toggleOrder} />}
       {sub === "expiry" && <ExpiryTable />}
       {sub === "stagnant" && <StagnantTable />}
-      {sub === "best" && <BestSellersTable />}
+      {sub === "best" && <BestSellersTable range={range} custom={custom} />}
     </div>
   );
 }
