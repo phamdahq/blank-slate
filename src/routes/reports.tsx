@@ -286,44 +286,40 @@ function KpiCard({
 
 /* ----------------------- Sales Intelligence ----------------------- */
 
-const trendData = [
-  { day: "Mon", revenue: 6200, gross: 3800, net: 2400 },
-  { day: "Tue", revenue: 4800, gross: 2900, net: 1800 },
-  { day: "Wed", revenue: 6800, gross: 4300, net: 2600 },
-  { day: "Thu", revenue: 5200, gross: 3400, net: 2100 },
-  { day: "Fri", revenue: 7400, gross: 4900, net: 3000 },
-  { day: "Sat", revenue: 2100, gross: 1300, net: 500 },
-  { day: "Sun", revenue: 3600, gross: 2200, net: 1200 },
-];
+const compactMoney = (n: number) => {
+  const abs = Math.abs(n);
+  if (abs >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
+  if (abs >= 1_000) return `$${(n / 1_000).toFixed(1)}k`;
+  return `$${n.toFixed(0)}`;
+};
 
-const valuationData = [
-  { name: "Prescription", value: 65, color: "#2563eb" },
-  { name: "OTC Medicine", value: 22, color: "#10b981" },
-  { name: "Medical Equipment", value: 13, color: "#b45309" },
-];
-const profitData = [
-  { name: "Prescription", value: 42, color: "#2563eb" },
-  { name: "OTC Medicine", value: 35, color: "#10b981" },
-  { name: "Medical Equipment", value: 23, color: "#b45309" },
-];
+function SalesIntelligence({
+  range,
+  custom,
+}: {
+  range: RangeKey;
+  custom: CustomRange | null;
+}) {
+  const { pharmacyId } = useSession();
+  const data = useSalesIntelligence(pharmacyId, range, custom);
 
-function SalesIntelligence() {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard
           label="Total Stock Value"
-          value="$248.5k"
+          value={compactMoney(data.stockSellValue)}
           icon={Wallet}
-          delta={{ value: "4.1%", positive: true }}
           hint={
             <>
               Total Sell Value
               <div className="mt-2 border-t border-border pt-2">
                 Purchase Value:{" "}
-                <span className="font-mono-data text-foreground">$165.2k</span>{" "}
+                <span className="font-mono-data text-foreground">
+                  {compactMoney(data.stockCostValue)}
+                </span>{" "}
                 <span className="font-mono-data text-secondary-soft-foreground">
-                  66.5%
+                  {(data.costRatio * 100).toFixed(1)}%
                 </span>
               </div>
             </>
@@ -331,48 +327,64 @@ function SalesIntelligence() {
         />
         <KpiCard
           label="Stock Turnover Rate"
-          value="8.4x"
+          value={`${data.turnover.toFixed(1)}x`}
           icon={RefreshCw}
-          delta={{ value: "12%", positive: true }}
           hint={
             <>
               <span className="font-mono-data text-primary">
-                EFFICIENCY SCORE: HIGH
+                ANNUALISED FROM {data.window.label}
               </span>
-              <div className="mt-1">Industry Avg: 6.2x</div>
+              <div className="mt-1">
+                COGS {compactMoney(data.cogs)} · Stock {compactMoney(data.stockCostValue)}
+              </div>
             </>
           }
         />
         <KpiCard
           label="Waste/Expiry Value"
-          value="$1,402"
+          value={compactMoney(data.wasteValue)}
           icon={Trash2}
           iconTone="danger"
-          delta={{ value: "8%", positive: false }}
           hint={
             <>
-              <span className="font-mono-data text-danger">34 ITEMS FLAGGED</span>
-              <div className="mt-1">Current Month Projection</div>
+              <span className="font-mono-data text-danger">
+                {data.wasteItems} BATCHES FLAGGED
+              </span>
+              <div className="mt-1">Expired on or before {data.window.end}</div>
             </>
           }
         />
         <KpiCard
           label="COGS"
-          value="$96,954"
+          value={compactMoney(data.cogs)}
           icon={FileText}
           iconTone="muted"
           hint={
             <>
-              Inventory Investment
-              <div className="mt-1">Est. Margin 68%</div>
+              Cost of goods sold · {data.transactions} transactions
+              <div className="mt-1">Margin {(data.margin * 100).toFixed(1)}%</div>
             </>
           }
         />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <DonutCard title="Valuation by Category" centerLabel="TOTAL" centerValue="$248k" data={valuationData} suffix="%" />
-        <DonutCard title="Profit Percentage by Category" subtitle="This Week" centerLabel="PROFIT" centerValue="100%" data={profitData} suffix="%" />
+        <DonutCard
+          title="Valuation by Category"
+          subtitle="Current stock at sell value"
+          centerLabel="TOTAL"
+          centerValue={compactMoney(data.stockSellValue)}
+          data={data.valuationByCategory}
+          suffix="%"
+        />
+        <DonutCard
+          title="Profit Percentage by Category"
+          subtitle={data.window.label}
+          centerLabel="GROSS PROFIT"
+          centerValue={compactMoney(data.grossProfit)}
+          data={data.profitByCategory}
+          suffix="%"
+        />
       </div>
 
       <div className="rounded-xl border border-border bg-surface p-5 shadow-elev-sm">
@@ -380,16 +392,29 @@ function SalesIntelligence() {
           <div>
             <h2 className="text-lg font-semibold">Profit Performance Trend</h2>
             <p className="text-sm text-muted-foreground">
-              Comparative analysis of revenue and profitability (Last 7 Days)
+              Revenue, gross and net profit · {data.window.label}
             </p>
+          </div>
+          <div className="text-right">
+            <div className="font-mono-data text-[11px] font-semibold uppercase tracking-wider text-subtle-foreground">
+              Net profit
+            </div>
+            <div
+              className={cn(
+                "text-xl font-bold",
+                data.netProfit < 0 ? "text-danger" : "text-foreground",
+              )}
+            >
+              {compactMoney(data.netProfit)}
+            </div>
           </div>
         </div>
         <div className="mt-4 h-[320px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={trendData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+            <LineChart data={data.trend} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
               <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-              <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v / 1000}k`} />
+              <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => compactMoney(Number(v))} />
               <Tooltip
                 contentStyle={{
                   background: "hsl(var(--surface))",
@@ -410,6 +435,7 @@ function SalesIntelligence() {
     </div>
   );
 }
+
 
 function DonutCard({
   title,
