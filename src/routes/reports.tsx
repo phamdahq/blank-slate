@@ -463,7 +463,18 @@ function DonutCard({
         <h3 className="text-lg font-semibold">{title}</h3>
         {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
       </div>
-      <div className="mt-4 grid grid-cols-1 items-center gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      {data.length === 0 && (
+        <p className="mt-8 pb-8 text-center text-sm text-muted-foreground">
+          No data for this period.
+        </p>
+      )}
+      <div
+        className={cn(
+          "mt-4 grid grid-cols-1 items-center gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]",
+          data.length === 0 && "hidden",
+        )}
+      >
+
         <div className="relative h-[220px]">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
