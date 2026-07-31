@@ -1246,7 +1246,7 @@ function FinancialsLog({
 
       <div className="rounded-xl border border-border bg-surface shadow-elev-sm">
         <div className="border-b border-border px-5 py-4">
-          <h3 className="text-lg font-semibold">Expense Log</h3>
+          <h3 className="text-lg font-semibold">Expense Log · {win.label}</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[520px] text-sm">
@@ -1259,7 +1259,7 @@ function FinancialsLog({
               </tr>
             </thead>
             <tbody>
-              {expenses.map((row) => (
+              {rangeTotals.rows.map((row) => (
                 <tr key={row.id} className="border-t border-border">
                   <Td className="font-mono-data text-muted-foreground">{prettyDate(row.date)}</Td>
                   <Td className="font-medium text-foreground">{row.name}</Td>
@@ -1269,7 +1269,7 @@ function FinancialsLog({
                   </Td>
                 </tr>
               ))}
-              {expenses.length === 0 && (
+              {rangeTotals.rows.length === 0 && (
                 <tr>
                   <td colSpan={4} className="px-5 py-10 text-center text-muted-foreground">
                     No expenses recorded yet.
