@@ -909,28 +909,36 @@ function StagnantTable() {
 }
 
 /* ---- Best sellers ---- */
-function BestSellersTable() {
+function BestSellersTable({
+  range,
+  custom,
+}: {
+  range: RangeKey;
+  custom: CustomRange | null;
+}) {
   const { pharmacyId } = useSession();
   const medications = useCatalog(pharmacyId);
   const stats = useSalesStats(pharmacyId);
+  const velocity = useVelocity(pharmacyId, range, custom);
 
   const rows = useMemo(
     () =>
       medications
         .map((m) => {
+          const v = velocity.get(m.id);
           const s = stats.get(m.id);
-          const units = s?.units ?? 0;
           const prev = s?.unitsPrev30 ?? 0;
           const curr = s?.units30 ?? 0;
           const growth =
             prev === 0 ? (curr > 0 ? 100 : 0) : Math.round(((curr - prev) / prev) * 100);
-          return { med: m, units, revenue: s?.revenue ?? 0, growth };
+          return { med: m, units: v?.units ?? 0, revenue: v?.revenue ?? 0, growth };
         })
         .filter((r) => r.units > 0)
         .sort((a, b) => b.units - a.units)
         .slice(0, 10),
-    [medications, stats],
+    [medications, velocity, stats],
   );
+
 
   return (
     <TableShell
