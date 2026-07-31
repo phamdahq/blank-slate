@@ -1021,9 +1021,16 @@ const prettyDate = (iso: string) => {
   return d.toLocaleDateString(undefined, { month: "short", day: "2-digit", year: "numeric" });
 };
 
-function FinancialsLog() {
+function FinancialsLog({
+  range,
+  custom,
+}: {
+  range: RangeKey;
+  custom: CustomRange | null;
+}) {
   const { pharmacyId } = useSession();
   const expenses = useExpenses(pharmacyId);
+  const financials = useSalesIntelligence(pharmacyId, range, custom);
   const [form, setForm] = useState({
     name: "",
     date: "",
@@ -1036,12 +1043,16 @@ function FinancialsLog() {
 
   const upcoming = useMemo(() => expenseService.upcomingRecurring(expenses), [expenses]);
 
-  const monthTotals = useMemo(() => {
-    const now = new Date();
-    const from = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
-    const to = expenseService.todayIso();
-    return expenseService.totalsInRange(expenses, from, to);
-  }, [expenses]);
+  const win = useMemo(
+    () => resolveRange(range, new Date(), custom),
+    [range, custom?.from, custom?.to],
+  );
+
+  const rangeTotals = useMemo(
+    () => expenseService.totalsInRange(expenses, win.start, win.end),
+    [expenses, win.start, win.end],
+  );
+
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
