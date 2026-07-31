@@ -1099,11 +1099,15 @@ function FinancialsLog({
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Expenses this month" value={money(monthTotals.total)} />
-        <StatCard label="Recurring (MTD)" value={money(monthTotals.recurring)} />
-        <StatCard label="One-time (MTD)" value={money(monthTotals.oneTime)} />
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <StatCard label={`Revenue · ${win.label}`} value={money(financials.revenue)} />
+        <StatCard label="Gross profit" value={money(financials.grossProfit)} />
+        <StatCard label="Net profit" value={money(financials.netProfit)} />
+        <StatCard label="Expenses in range" value={money(rangeTotals.total)} />
+        <StatCard label="Recurring in range" value={money(rangeTotals.recurring)} />
+        <StatCard label="One-time in range" value={money(rangeTotals.oneTime)} />
       </div>
+
 
       <div className="max-w-md">
         <form
