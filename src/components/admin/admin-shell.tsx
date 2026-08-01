@@ -97,9 +97,8 @@ export function AdminShell({
           >
             <Menu className="h-4 w-4" />
           </button>
-          <h1 className="shrink-0 text-base font-extrabold text-primary sm:text-lg">{title}</h1>
           {onSearchChange && (
-            <div className="relative ml-2 hidden max-w-md flex-1 md:block">
+            <div className="relative hidden max-w-md flex-1 md:block">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <input
                 value={search ?? ""}
@@ -115,11 +114,17 @@ export function AdminShell({
               <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-danger" />
             </button>
             <div className="hidden h-8 w-px bg-border sm:block" />
-            <div className="hidden text-right font-mono-data text-sm leading-tight sm:block">
-              <p className="font-bold text-foreground">{name}</p>
-              <p className="text-muted-foreground">Platform owner</p>
-            </div>
+            <Link
+              to="/admin/profile"
+              className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-semibold text-foreground hover:bg-surface-low"
+            >
+              <span className="grid h-8 w-8 place-items-center rounded-full bg-primary-soft text-primary">
+                <User className="h-4 w-4" />
+              </span>
+              <span className="hidden sm:block">Profile</span>
+            </Link>
           </div>
+
         </header>
         <main className="min-w-0 flex-1 p-4 sm:p-6">{children}</main>
       </div>
