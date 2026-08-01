@@ -45,20 +45,14 @@ export interface AdminShellProps {
 
 /** Shared chrome for every /admin/* screen. */
 export function AdminShell({
-  title,
   searchPlaceholder = "Search…",
   search,
   onSearchChange,
   children,
 }: AdminShellProps) {
   const [open, setOpen] = useState(false);
-  const { profile, user } = useSession();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-  const name =
-    [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") ||
-    user?.email ||
-    "Platform owner";
 
   return (
     <div className="flex min-h-screen bg-surface-low">
