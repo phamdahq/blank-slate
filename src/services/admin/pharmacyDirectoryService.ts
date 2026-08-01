@@ -61,3 +61,75 @@ export function countByStatus(rows: DirectoryPharmacy[]) {
 export function uniqueCities(rows: DirectoryPharmacy[]): string[] {
   return Array.from(new Set(rows.map((r) => r.city).filter(Boolean))).sort();
 }
+
+// ---------------- Detail view ----------------
+
+export interface PharmacyOwner {
+  id: string;
+  first_name: string;
+  last_name: string;
+  phone_number: string;
+  email: string | null;
+  role: string;
+}
+
+export interface PharmacyPayout {
+  id: string;
+  amount: number;
+  payment_method: string | null;
+  status: string;
+  paid_at: string;
+}
+
+export interface PharmacyDetail extends DirectoryPharmacy {
+  latitude: number | null;
+  longitude: number | null;
+  owner: PharmacyOwner | null;
+  payouts: PharmacyPayout[];
+}
+
+/** Full command-center payload for a single tenant. */
+export async function getPharmacyDetail(id: string): Promise<PharmacyDetail> {
+  const [pharmacyRes, ownerRes, payoutRes] = await Promise.all([
+    supabase
+      .from("pharmacies")
+      .select(
+        "id, name, city, country, tier, subscription_status, next_payment_due, created_at, latitude, longitude",
+      )
+      .eq("id", id)
+      .maybeSingle(),
+    supabase
+      .from("users")
+      .select("id, first_name, last_name, phone_number, email, role")
+      .eq("pharmacy_id", id)
+      .eq("role", "owner")
+      .maybeSingle(),
+    supabase
+      .from("platform_payouts")
+      .select("id, amount, payment_method, status, paid_at")
+      .eq("pharmacy_id", id)
+      .order("paid_at", { ascending: false })
+      .limit(12),
+  ]);
+
+  if (pharmacyRes.error) throw new Error(pharmacyRes.error.message);
+  if (!pharmacyRes.data) throw new Error("Pharmacy not found");
+
+  return {
+    ...(pharmacyRes.data as PharmacyDetail),
+    owner: (ownerRes.data as PharmacyOwner | null) ?? null,
+    payouts: (payoutRes.data ?? []) as PharmacyPayout[],
+  };
+}
+
+/** Flip a tenant between active and suspended. */
+export async function setSubscriptionStatus(
+  id: string,
+  status: SubscriptionStatus,
+): Promise<void> {
+  const { error } = await supabase
+    .from("pharmacies")
+    .update({ subscription_status: status })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
