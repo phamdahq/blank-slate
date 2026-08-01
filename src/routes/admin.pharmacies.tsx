@@ -101,7 +101,7 @@ function PharmaciesPage() {
       </div>
 
       {/* Mobile pill tabs */}
-      <div className="mt-4 flex gap-2 overflow-x-auto md:hidden">
+      <div className="mt-4 flex flex-wrap gap-2 md:hidden">
         {(["all", "active", "expired", "trial"] as const).map((t) => (
           <button
             key={t}
@@ -131,7 +131,8 @@ function PharmaciesPage() {
         {visible.map((p) => (
           <Link
             key={p.id}
-            to="/admin/pharmacies"
+            to="/admin/pharmacies_/$pharmacyId"
+            params={{ pharmacyId: p.id }}
             className="flex items-center gap-3 rounded-xl border border-border bg-surface p-4 shadow-elev-sm"
           >
             <span
@@ -197,7 +198,8 @@ function PharmaciesPage() {
                 </td>
                 <td className="px-5 py-4 text-right">
                   <Link
-                    to="/admin/pharmacies"
+                    to="/admin/pharmacies_/$pharmacyId"
+                    params={{ pharmacyId: p.id }}
                     className="inline-flex h-9 items-center rounded-md bg-primary-soft px-4 text-sm font-semibold text-primary hover:bg-surface-low"
                   >
                     View Details

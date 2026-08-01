@@ -88,7 +88,7 @@ export function AdminShell({
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-[72px] items-center gap-3 border-b border-border bg-surface px-4 sm:px-6">
+        <header className="sticky top-0 z-30 flex h-[72px] items-center gap-3 border-b border-border bg-surface px-4 sm:px-6">
           <button
             className="grid h-9 w-9 place-items-center rounded-md border border-border lg:hidden"
             onClick={() => setOpen(true)}

@@ -12,7 +12,7 @@ export function AdminTabs<T extends string>({
   onChange: (v: T) => void;
 }) {
   return (
-    <div className="flex gap-2 overflow-x-auto border-b border-border">
+    <div className="flex flex-wrap gap-2 border-b border-border">
       {tabs.map((t) => (
         <button
           key={t.value}
