@@ -15,7 +15,7 @@ export const Route = createFileRoute("/admin/support")({
     ],
   }),
   component: () => (
-    <AdminShell title="Phamda Master Console">
+    <AdminShell>
       <AdminEmptySection title="Support" note="Support inbox is coming soon." />
     </AdminShell>
   ),

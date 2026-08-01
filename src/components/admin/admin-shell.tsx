@@ -16,7 +16,6 @@ import {
   Wallet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useSession } from "@/hooks/use-session";
 
 const NAV = [
   { to: "/admin", label: "Dashboard", icon: LayoutGrid, exact: true },
