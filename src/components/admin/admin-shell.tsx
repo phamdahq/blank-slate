@@ -35,12 +35,13 @@ const FOOTER_NAV = [
 ] as const;
 
 export interface AdminShellProps {
-  title: string;
+  title?: string;
   searchPlaceholder?: string;
   search?: string;
   onSearchChange?: (v: string) => void;
   children: ReactNode;
 }
+
 
 /** Shared chrome for every /admin/* screen. */
 export function AdminShell({
