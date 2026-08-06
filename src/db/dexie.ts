@@ -117,6 +117,30 @@ export interface PaymentAccount {
   created_at?: string;
 }
 
+/** A POS order held for cashier processing. Local-only (offline-first). */
+export interface OrderItem {
+  product_id: string;
+  batch_id: string;
+  name: string;
+  strength?: string | null;
+  form?: string | null;
+  quantity: number;
+  unit_price: number;
+}
+
+export type OrderStatus = "pending" | "completed" | "cancelled";
+
+export interface OrderRow {
+  id: string;
+  pharmacy_id: string;
+  order_no: number;
+  items: OrderItem[];
+  total: number;
+  status: OrderStatus;
+  created_at: string;
+  transaction_id?: string | null;
+}
+
 export type OutboxOp =
   | { kind: "sales.insert"; row: SaleRow }
   | { kind: "batches.upsert"; row: Batch }
@@ -124,6 +148,7 @@ export type OutboxOp =
   | { kind: "expenses.delete"; id: string }
   | { kind: "pharmacy_settings.upsert"; row: PharmacySettings }
   | { kind: "users.update"; id: string; patch: Partial<UserRow> };
+
 
 export interface OutboxEntry {
   /** auto-increment surrogate; op payload carries the domain UUID */
@@ -152,6 +177,7 @@ class PhamdaDB extends Dexie {
   expenses!: Table<Expense, string>;
   users!: Table<UserRow, string>;
   payment_accounts!: Table<PaymentAccount, string>;
+  orders!: Table<OrderRow, string>;
   outbox!: Table<OutboxEntry, number>;
   meta!: Table<Meta, string>;
 
@@ -171,6 +197,9 @@ class PhamdaDB extends Dexie {
     });
     this.version(2).stores({
       payment_accounts: "id, pharmacy_id, provider, [pharmacy_id+provider]",
+    });
+    this.version(3).stores({
+      orders: "id, pharmacy_id, status, created_at, [pharmacy_id+status]",
     });
   }
 }

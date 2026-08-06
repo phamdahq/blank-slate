@@ -208,7 +208,7 @@ function PharmacyDetailPage() {
                     <tr key={p.id} className="border-t border-border">
                       <td className="py-2 text-xs text-foreground">{formatDate(p.paid_at)}</td>
                       <td className="py-2 font-mono-data text-xs font-bold text-foreground">
-                        {Number(p.amount).toFixed(2)}
+                        {Number(p.amount).toFixed(2)} ETB
                       </td>
                       <td className="py-2 text-right">
                         <span

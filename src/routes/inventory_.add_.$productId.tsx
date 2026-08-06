@@ -304,10 +304,10 @@ function AddMedicineForm() {
           <SectionCard icon={CreditCard} title="Pricing & supplier">
             <div className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Cost price">
+                <Field label="Cost price (ETB)">
                   <MoneyInput value={cost} onChange={setCost} />
                 </Field>
-                <Field label="Selling price" required>
+                <Field label="Selling price (ETB)" required>
                   <MoneyInput value={price} onChange={setPrice} required />
                 </Field>
               </div>

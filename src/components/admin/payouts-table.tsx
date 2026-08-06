@@ -97,7 +97,8 @@ export function PayoutsTable({
                 {Number(row.amount).toLocaleString(undefined, {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
-                })}
+                })}{" "}
+                ETB
               </td>
               <td className="px-5 py-4">
                 <PayoutMethodCell method={row.payment_method} />

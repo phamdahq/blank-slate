@@ -148,9 +148,10 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
           </FooterCol>
 
           <FooterCol title="Contact">
-            <li className="text-sm text-muted-foreground">support@phamda.app</li>
-            <li className="text-sm text-muted-foreground">+251 91 555 0110</li>
-            <li className="text-sm text-muted-foreground">Bole, Addis Ababa</li>
+            <li className="text-sm text-muted-foreground">phamdahub@gmail.com</li>
+            <li className="text-sm text-muted-foreground">+251 965439882</li>
+            <li className="text-sm text-muted-foreground">Addis Ababa</li>
+            <li className="text-sm text-muted-foreground">Mon–Sun · 08:00–20:00 EAT</li>
           </FooterCol>
         </div>
         <div className="border-t border-border">

@@ -14,6 +14,7 @@ import {
   CreditCard,
   Landmark,
   Receipt,
+  ClipboardList,
 } from "lucide-react";
 import { AppShellWithSlot } from "@/components/app-shell";
 import { RequireRole } from "@/components/require-role";
@@ -22,6 +23,8 @@ import { useOnline } from "@/hooks/use-online";
 import { useCatalog, type Medication, type Batch } from "@/lib/catalog";
 import { cn } from "@/lib/utils";
 import * as salesService from "@/services/pos/salesService";
+import { ordersRepo } from "@/db/orders";
+import { useOrdersEnabled } from "@/hooks/use-orders";
 
 
 
@@ -116,6 +119,7 @@ function PosView() {
   const subtotal = lines.reduce((s, x) => s + x.med.price * x.line.qty, 0);
   const total = subtotal;
   const itemCount = lines.reduce((s, x) => s + x.line.qty, 0);
+  const ordersEnabled = useOrdersEnabled(pharmacyId);
   const [charging, setCharging] = useState(false);
   const [receipt, setReceipt] = useState<string | null>(null);
   const [queuedOffline, setQueuedOffline] = useState(false);
@@ -128,6 +132,26 @@ function PosView() {
     }
     setCharging(true);
     try {
+      if (ordersEnabled) {
+        const order = await ordersRepo.create(
+          pharmacyId,
+          lines.map((x) => ({
+            product_id: x.med.id,
+            batch_id: x.batch.id,
+            name: x.med.name,
+            strength: x.med.strength,
+            form: x.med.form,
+            quantity: x.line.qty,
+            unit_price: x.med.price,
+          })),
+        );
+        setCart([]);
+        setMobileCartOpen(false);
+        setQueuedOffline(false);
+        setReceipt(`Order #${order.order_no} sent to Orders`);
+        setTimeout(() => setReceipt(null), 2500);
+        return;
+      }
       const result = await salesService.checkout(
         pharmacyId,
         lines.map((x) => ({
@@ -247,7 +271,7 @@ function PosView() {
                         </span>
                       </td>
                       <td className="px-3 py-3 text-right font-mono-data font-semibold text-primary">
-                        ${m.price.toFixed(2)}
+                        {m.price.toFixed(2)} ETB
                       </td>
                       <td className="px-3 py-3 text-right">
                         <button
@@ -286,7 +310,7 @@ function PosView() {
                 </div>
                 <div className="text-right">
                   <div className="font-mono-data text-base font-bold text-primary">
-                    ${m.price.toFixed(2)}
+                    {m.price.toFixed(2)} ETB
                   </div>
                   <div className="font-mono-data text-[11px] text-subtle-foreground">
                     Qty {m.stock}
@@ -308,7 +332,7 @@ function PosView() {
             total={total}
 
             onCharge={handleCharge}
-
+            orderMode={ordersEnabled}
             itemCount={itemCount}
             setQty={setQty}
             setBatch={setBatch}
@@ -345,7 +369,7 @@ function PosView() {
                 subtotal={subtotal}
                 total={total}
                 onCharge={handleCharge}
-
+                orderMode={ordersEnabled}
                 itemCount={itemCount}
                 setQty={setQty}
                 setBatch={setBatch}
@@ -358,7 +382,7 @@ function PosView() {
       )}
       {charging && (
         <div className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-elev-lg">
-          Committing sale…
+          {ordersEnabled ? "Placing order…" : "Committing sale…"}
         </div>
       )}
       {receipt && (
@@ -372,7 +396,9 @@ function PosView() {
         >
           {queuedOffline
             ? `Saved offline · syncs when online · ${receipt}`
-            : `Sale committed · ${receipt}`}
+            : receipt.startsWith("Order")
+              ? receipt
+              : `Sale committed · ${receipt}`}
         </div>
       )}
     </AppShellWithSlot>
@@ -411,6 +437,7 @@ function CartPanel({
   setBatch,
   removeLine,
   onCharge,
+  orderMode,
   embedded,
 }: {
   lines: { line: CartLine; med: Medication; batch: Batch }[];
@@ -421,6 +448,7 @@ function CartPanel({
   setBatch: (medId: string, batchId: string) => void;
   removeLine: (medId: string) => void;
   onCharge: () => void;
+  orderMode?: boolean;
   embedded?: boolean;
 }) {
 
@@ -483,11 +511,11 @@ function CartPanel({
 
       <footer className="border-t border-border bg-surface-low px-5 py-4">
         <dl className="space-y-1.5 text-sm">
-          <Row label="Subtotal" value={`$${subtotal.toFixed(2)}`} />
+          <Row label="Subtotal" value={`${subtotal.toFixed(2)} ETB`} />
           <div className="flex items-baseline justify-between border-t border-border pt-2.5">
             <dt className="text-base font-bold">Total</dt>
             <dd className="font-mono-data text-xl font-bold text-primary">
-              ${total.toFixed(2)}
+              {total.toFixed(2)} ETB
             </dd>
           </div>
         </dl>
@@ -497,8 +525,8 @@ function CartPanel({
           disabled={lines.length === 0}
           className="mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-primary text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <CreditCard className="h-4 w-4" />
-          Charge ${total.toFixed(2)}
+          {orderMode ? <ClipboardList className="h-4 w-4" /> : <CreditCard className="h-4 w-4" />}
+          {orderMode ? "Order" : "Charge"} {total.toFixed(2)} ETB
         </button>
 
         <button
@@ -553,7 +581,7 @@ function CartRow({
         </div>
         <div className="text-right">
           <div className="font-mono-data text-sm font-bold text-primary">
-            ${lineTotal.toFixed(2)}
+            {lineTotal.toFixed(2)} ETB
           </div>
         </div>
       </div>

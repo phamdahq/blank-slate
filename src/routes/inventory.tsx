@@ -196,7 +196,7 @@ function InventoryView() {
                       {m.reorderLevel.toLocaleString()} units
                     </td>
                     <td className="px-5 py-4 text-right font-mono-data font-semibold text-primary">
-                      ${m.price.toFixed(2)}
+                      {m.price.toFixed(2)} ETB
                     </td>
                     <td className="px-3 py-4 text-right">
                       <RowActions productId={m.id} />
@@ -419,7 +419,7 @@ function MobileMedRow({ med }: { med: Medication }) {
             {med.form === "Tablet" ? "Tablets" : med.form === "Capsule" ? "Capsules" : "Units"}
           </div>
           <div className="mt-2 font-mono-data text-sm font-semibold text-primary">
-            ${med.price.toFixed(2)}
+            {med.price.toFixed(2)} ETB
           </div>
         </div>
       </div>

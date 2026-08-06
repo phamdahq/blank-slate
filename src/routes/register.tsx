@@ -234,7 +234,7 @@ function RegisterPage() {
                   icon={<MapPin className="h-4 w-4" />}
                   value={form.location}
                   onChange={(v) => set("location", v)}
-                  placeholder="Bole, Namibia Street"
+                  placeholder="Addis Ababa"
                 />
               </div>
             </FieldGroup>

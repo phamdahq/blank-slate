@@ -9,12 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SupplierRouteImport } from './routes/supplier'
+import { Route as SalesRouteImport } from './routes/sales'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as PurchaseOrdersRouteImport } from './routes/purchase-orders'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PosRouteImport } from './routes/pos'
+import { Route as OrdersRouteImport } from './routes/orders'
+import { Route as MarketplaceRouteImport } from './routes/marketplace'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
@@ -23,7 +28,14 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SupplierIndexRouteImport } from './routes/supplier.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as SupplierSalesHistoryRouteImport } from './routes/supplier.sales-history'
+import { Route as SupplierReportsRouteImport } from './routes/supplier.reports'
+import { Route as SupplierProfileRouteImport } from './routes/supplier.profile'
+import { Route as SupplierInventoryRouteImport } from './routes/supplier.inventory'
+import { Route as SupplierIncomingOrdersRouteImport } from './routes/supplier.incoming-orders'
+import { Route as SupplierDashboardRouteImport } from './routes/supplier.dashboard'
 import { Route as StaffAddRouteImport } from './routes/staff.add'
 import { Route as InventoryAddRouteImport } from './routes/inventory_.add'
 import { Route as AdminTeamRouteImport } from './routes/admin.team'
@@ -39,6 +51,16 @@ import { Route as AdminLogsRouteImport } from './routes/admin.logs'
 import { Route as InventoryAddProductIdRouteImport } from './routes/inventory_.add_.$productId'
 import { Route as AdminPharmaciesPharmacyIdRouteImport } from './routes/admin.pharmacies_.$pharmacyId'
 
+const SupplierRoute = SupplierRouteImport.update({
+  id: '/supplier',
+  path: '/supplier',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SalesRoute = SalesRouteImport.update({
+  id: '/sales',
+  path: '/sales',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
@@ -54,6 +76,11 @@ const RegisterRoute = RegisterRouteImport.update({
   path: '/register',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PurchaseOrdersRoute = PurchaseOrdersRouteImport.update({
+  id: '/purchase-orders',
+  path: '/purchase-orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -67,6 +94,16 @@ const PricingRoute = PricingRouteImport.update({
 const PosRoute = PosRouteImport.update({
   id: '/pos',
   path: '/pos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrdersRoute = OrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MarketplaceRoute = MarketplaceRouteImport.update({
+  id: '/marketplace',
+  path: '/marketplace',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -109,10 +146,45 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SupplierIndexRoute = SupplierIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SupplierRoute,
+} as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRoute,
+} as any)
+const SupplierSalesHistoryRoute = SupplierSalesHistoryRouteImport.update({
+  id: '/sales-history',
+  path: '/sales-history',
+  getParentRoute: () => SupplierRoute,
+} as any)
+const SupplierReportsRoute = SupplierReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => SupplierRoute,
+} as any)
+const SupplierProfileRoute = SupplierProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => SupplierRoute,
+} as any)
+const SupplierInventoryRoute = SupplierInventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
+  getParentRoute: () => SupplierRoute,
+} as any)
+const SupplierIncomingOrdersRoute = SupplierIncomingOrdersRouteImport.update({
+  id: '/incoming-orders',
+  path: '/incoming-orders',
+  getParentRoute: () => SupplierRoute,
+} as any)
+const SupplierDashboardRoute = SupplierDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => SupplierRoute,
 } as any)
 const StaffAddRoute = StaffAddRouteImport.update({
   id: '/staff/add',
@@ -195,12 +267,17 @@ export interface FileRoutesByFullPath {
   '/forgot-password': typeof ForgotPasswordRoute
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
+  '/marketplace': typeof MarketplaceRoute
+  '/orders': typeof OrdersRoute
   '/pos': typeof PosRoute
   '/pricing': typeof PricingRoute
   '/profile': typeof ProfileRoute
+  '/purchase-orders': typeof PurchaseOrdersRoute
   '/register': typeof RegisterRoute
   '/reports': typeof ReportsRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/sales': typeof SalesRoute
+  '/supplier': typeof SupplierRouteWithChildren
   '/admin/logs': typeof AdminLogsRoute
   '/admin/payout': typeof AdminPayoutRoute
   '/admin/pharmacies': typeof AdminPharmaciesRoute
@@ -213,7 +290,14 @@ export interface FileRoutesByFullPath {
   '/admin/team': typeof AdminTeamRoute
   '/inventory/add': typeof InventoryAddRoute
   '/staff/add': typeof StaffAddRoute
+  '/supplier/dashboard': typeof SupplierDashboardRoute
+  '/supplier/incoming-orders': typeof SupplierIncomingOrdersRoute
+  '/supplier/inventory': typeof SupplierInventoryRoute
+  '/supplier/profile': typeof SupplierProfileRoute
+  '/supplier/reports': typeof SupplierReportsRoute
+  '/supplier/sales-history': typeof SupplierSalesHistoryRoute
   '/admin/': typeof AdminIndexRoute
+  '/supplier/': typeof SupplierIndexRoute
   '/admin/pharmacies/$pharmacyId': typeof AdminPharmaciesPharmacyIdRoute
   '/inventory/add/$productId': typeof InventoryAddProductIdRoute
 }
@@ -225,12 +309,16 @@ export interface FileRoutesByTo {
   '/forgot-password': typeof ForgotPasswordRoute
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
+  '/marketplace': typeof MarketplaceRoute
+  '/orders': typeof OrdersRoute
   '/pos': typeof PosRoute
   '/pricing': typeof PricingRoute
   '/profile': typeof ProfileRoute
+  '/purchase-orders': typeof PurchaseOrdersRoute
   '/register': typeof RegisterRoute
   '/reports': typeof ReportsRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/sales': typeof SalesRoute
   '/admin/logs': typeof AdminLogsRoute
   '/admin/payout': typeof AdminPayoutRoute
   '/admin/pharmacies': typeof AdminPharmaciesRoute
@@ -243,7 +331,14 @@ export interface FileRoutesByTo {
   '/admin/team': typeof AdminTeamRoute
   '/inventory/add': typeof InventoryAddRoute
   '/staff/add': typeof StaffAddRoute
+  '/supplier/dashboard': typeof SupplierDashboardRoute
+  '/supplier/incoming-orders': typeof SupplierIncomingOrdersRoute
+  '/supplier/inventory': typeof SupplierInventoryRoute
+  '/supplier/profile': typeof SupplierProfileRoute
+  '/supplier/reports': typeof SupplierReportsRoute
+  '/supplier/sales-history': typeof SupplierSalesHistoryRoute
   '/admin': typeof AdminIndexRoute
+  '/supplier': typeof SupplierIndexRoute
   '/admin/pharmacies/$pharmacyId': typeof AdminPharmaciesPharmacyIdRoute
   '/inventory/add/$productId': typeof InventoryAddProductIdRoute
 }
@@ -257,12 +352,17 @@ export interface FileRoutesById {
   '/forgot-password': typeof ForgotPasswordRoute
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
+  '/marketplace': typeof MarketplaceRoute
+  '/orders': typeof OrdersRoute
   '/pos': typeof PosRoute
   '/pricing': typeof PricingRoute
   '/profile': typeof ProfileRoute
+  '/purchase-orders': typeof PurchaseOrdersRoute
   '/register': typeof RegisterRoute
   '/reports': typeof ReportsRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/sales': typeof SalesRoute
+  '/supplier': typeof SupplierRouteWithChildren
   '/admin/logs': typeof AdminLogsRoute
   '/admin/payout': typeof AdminPayoutRoute
   '/admin/pharmacies': typeof AdminPharmaciesRoute
@@ -275,7 +375,14 @@ export interface FileRoutesById {
   '/admin/team': typeof AdminTeamRoute
   '/inventory_/add': typeof InventoryAddRoute
   '/staff/add': typeof StaffAddRoute
+  '/supplier/dashboard': typeof SupplierDashboardRoute
+  '/supplier/incoming-orders': typeof SupplierIncomingOrdersRoute
+  '/supplier/inventory': typeof SupplierInventoryRoute
+  '/supplier/profile': typeof SupplierProfileRoute
+  '/supplier/reports': typeof SupplierReportsRoute
+  '/supplier/sales-history': typeof SupplierSalesHistoryRoute
   '/admin/': typeof AdminIndexRoute
+  '/supplier/': typeof SupplierIndexRoute
   '/admin/pharmacies_/$pharmacyId': typeof AdminPharmaciesPharmacyIdRoute
   '/inventory_/add_/$productId': typeof InventoryAddProductIdRoute
 }
@@ -290,12 +397,17 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/inventory'
     | '/login'
+    | '/marketplace'
+    | '/orders'
     | '/pos'
     | '/pricing'
     | '/profile'
+    | '/purchase-orders'
     | '/register'
     | '/reports'
     | '/reset-password'
+    | '/sales'
+    | '/supplier'
     | '/admin/logs'
     | '/admin/payout'
     | '/admin/pharmacies'
@@ -308,7 +420,14 @@ export interface FileRouteTypes {
     | '/admin/team'
     | '/inventory/add'
     | '/staff/add'
+    | '/supplier/dashboard'
+    | '/supplier/incoming-orders'
+    | '/supplier/inventory'
+    | '/supplier/profile'
+    | '/supplier/reports'
+    | '/supplier/sales-history'
     | '/admin/'
+    | '/supplier/'
     | '/admin/pharmacies/$pharmacyId'
     | '/inventory/add/$productId'
   fileRoutesByTo: FileRoutesByTo
@@ -320,12 +439,16 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/inventory'
     | '/login'
+    | '/marketplace'
+    | '/orders'
     | '/pos'
     | '/pricing'
     | '/profile'
+    | '/purchase-orders'
     | '/register'
     | '/reports'
     | '/reset-password'
+    | '/sales'
     | '/admin/logs'
     | '/admin/payout'
     | '/admin/pharmacies'
@@ -338,7 +461,14 @@ export interface FileRouteTypes {
     | '/admin/team'
     | '/inventory/add'
     | '/staff/add'
+    | '/supplier/dashboard'
+    | '/supplier/incoming-orders'
+    | '/supplier/inventory'
+    | '/supplier/profile'
+    | '/supplier/reports'
+    | '/supplier/sales-history'
     | '/admin'
+    | '/supplier'
     | '/admin/pharmacies/$pharmacyId'
     | '/inventory/add/$productId'
   id:
@@ -351,12 +481,17 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/inventory'
     | '/login'
+    | '/marketplace'
+    | '/orders'
     | '/pos'
     | '/pricing'
     | '/profile'
+    | '/purchase-orders'
     | '/register'
     | '/reports'
     | '/reset-password'
+    | '/sales'
+    | '/supplier'
     | '/admin/logs'
     | '/admin/payout'
     | '/admin/pharmacies'
@@ -369,7 +504,14 @@ export interface FileRouteTypes {
     | '/admin/team'
     | '/inventory_/add'
     | '/staff/add'
+    | '/supplier/dashboard'
+    | '/supplier/incoming-orders'
+    | '/supplier/inventory'
+    | '/supplier/profile'
+    | '/supplier/reports'
+    | '/supplier/sales-history'
     | '/admin/'
+    | '/supplier/'
     | '/admin/pharmacies_/$pharmacyId'
     | '/inventory_/add_/$productId'
   fileRoutesById: FileRoutesById
@@ -383,12 +525,17 @@ export interface RootRouteChildren {
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   InventoryRoute: typeof InventoryRoute
   LoginRoute: typeof LoginRoute
+  MarketplaceRoute: typeof MarketplaceRoute
+  OrdersRoute: typeof OrdersRoute
   PosRoute: typeof PosRoute
   PricingRoute: typeof PricingRoute
   ProfileRoute: typeof ProfileRoute
+  PurchaseOrdersRoute: typeof PurchaseOrdersRoute
   RegisterRoute: typeof RegisterRoute
   ReportsRoute: typeof ReportsRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  SalesRoute: typeof SalesRoute
+  SupplierRoute: typeof SupplierRouteWithChildren
   InventoryAddRoute: typeof InventoryAddRoute
   StaffAddRoute: typeof StaffAddRoute
   InventoryAddProductIdRoute: typeof InventoryAddProductIdRoute
@@ -396,6 +543,20 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/supplier': {
+      id: '/supplier'
+      path: '/supplier'
+      fullPath: '/supplier'
+      preLoaderRoute: typeof SupplierRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sales': {
+      id: '/sales'
+      path: '/sales'
+      fullPath: '/sales'
+      preLoaderRoute: typeof SalesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
@@ -417,6 +578,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/purchase-orders': {
+      id: '/purchase-orders'
+      path: '/purchase-orders'
+      fullPath: '/purchase-orders'
+      preLoaderRoute: typeof PurchaseOrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/profile': {
       id: '/profile'
       path: '/profile'
@@ -436,6 +604,20 @@ declare module '@tanstack/react-router' {
       path: '/pos'
       fullPath: '/pos'
       preLoaderRoute: typeof PosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orders': {
+      id: '/orders'
+      path: '/orders'
+      fullPath: '/orders'
+      preLoaderRoute: typeof OrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/marketplace': {
+      id: '/marketplace'
+      path: '/marketplace'
+      fullPath: '/marketplace'
+      preLoaderRoute: typeof MarketplaceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -494,12 +676,61 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/supplier/': {
+      id: '/supplier/'
+      path: '/'
+      fullPath: '/supplier/'
+      preLoaderRoute: typeof SupplierIndexRouteImport
+      parentRoute: typeof SupplierRoute
+    }
     '/admin/': {
       id: '/admin/'
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/supplier/sales-history': {
+      id: '/supplier/sales-history'
+      path: '/sales-history'
+      fullPath: '/supplier/sales-history'
+      preLoaderRoute: typeof SupplierSalesHistoryRouteImport
+      parentRoute: typeof SupplierRoute
+    }
+    '/supplier/reports': {
+      id: '/supplier/reports'
+      path: '/reports'
+      fullPath: '/supplier/reports'
+      preLoaderRoute: typeof SupplierReportsRouteImport
+      parentRoute: typeof SupplierRoute
+    }
+    '/supplier/profile': {
+      id: '/supplier/profile'
+      path: '/profile'
+      fullPath: '/supplier/profile'
+      preLoaderRoute: typeof SupplierProfileRouteImport
+      parentRoute: typeof SupplierRoute
+    }
+    '/supplier/inventory': {
+      id: '/supplier/inventory'
+      path: '/inventory'
+      fullPath: '/supplier/inventory'
+      preLoaderRoute: typeof SupplierInventoryRouteImport
+      parentRoute: typeof SupplierRoute
+    }
+    '/supplier/incoming-orders': {
+      id: '/supplier/incoming-orders'
+      path: '/incoming-orders'
+      fullPath: '/supplier/incoming-orders'
+      preLoaderRoute: typeof SupplierIncomingOrdersRouteImport
+      parentRoute: typeof SupplierRoute
+    }
+    '/supplier/dashboard': {
+      id: '/supplier/dashboard'
+      path: '/dashboard'
+      fullPath: '/supplier/dashboard'
+      preLoaderRoute: typeof SupplierDashboardRouteImport
+      parentRoute: typeof SupplierRoute
     }
     '/staff/add': {
       id: '/staff/add'
@@ -634,6 +865,30 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface SupplierRouteChildren {
+  SupplierDashboardRoute: typeof SupplierDashboardRoute
+  SupplierIncomingOrdersRoute: typeof SupplierIncomingOrdersRoute
+  SupplierInventoryRoute: typeof SupplierInventoryRoute
+  SupplierProfileRoute: typeof SupplierProfileRoute
+  SupplierReportsRoute: typeof SupplierReportsRoute
+  SupplierSalesHistoryRoute: typeof SupplierSalesHistoryRoute
+  SupplierIndexRoute: typeof SupplierIndexRoute
+}
+
+const SupplierRouteChildren: SupplierRouteChildren = {
+  SupplierDashboardRoute: SupplierDashboardRoute,
+  SupplierIncomingOrdersRoute: SupplierIncomingOrdersRoute,
+  SupplierInventoryRoute: SupplierInventoryRoute,
+  SupplierProfileRoute: SupplierProfileRoute,
+  SupplierReportsRoute: SupplierReportsRoute,
+  SupplierSalesHistoryRoute: SupplierSalesHistoryRoute,
+  SupplierIndexRoute: SupplierIndexRoute,
+}
+
+const SupplierRouteWithChildren = SupplierRoute._addFileChildren(
+  SupplierRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
@@ -643,12 +898,17 @@ const rootRouteChildren: RootRouteChildren = {
   ForgotPasswordRoute: ForgotPasswordRoute,
   InventoryRoute: InventoryRoute,
   LoginRoute: LoginRoute,
+  MarketplaceRoute: MarketplaceRoute,
+  OrdersRoute: OrdersRoute,
   PosRoute: PosRoute,
   PricingRoute: PricingRoute,
   ProfileRoute: ProfileRoute,
+  PurchaseOrdersRoute: PurchaseOrdersRoute,
   RegisterRoute: RegisterRoute,
   ReportsRoute: ReportsRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  SalesRoute: SalesRoute,
+  SupplierRoute: SupplierRouteWithChildren,
   InventoryAddRoute: InventoryAddRoute,
   StaffAddRoute: StaffAddRoute,
   InventoryAddProductIdRoute: InventoryAddProductIdRoute,

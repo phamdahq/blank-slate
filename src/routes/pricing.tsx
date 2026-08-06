@@ -29,8 +29,8 @@ const PLANS = [
   {
     name: "Standard",
     tagline: "For single-location pharmacies getting off spreadsheets.",
-    monthly: 49,
-    annual: 39,
+    monthly: 2500,
+    annual: 2000,
     highlight: false,
     features: [
       ["Offline-first POS", true],
@@ -46,8 +46,8 @@ const PLANS = [
   {
     name: "Enterprise",
     tagline: "For pharmacy groups running multiple branches and stations.",
-    monthly: 129,
-    annual: 99,
+    monthly: 6500,
+    annual: 5200,
     highlight: true,
     features: [
       ["Offline-first POS", true],
@@ -141,7 +141,7 @@ function PricingPage() {
               <p className="mt-1.5 text-sm text-muted-foreground">{plan.tagline}</p>
               <div className="mt-6 flex items-end gap-1.5">
                 <span className="font-mono-data text-4xl font-bold">
-                  ${annual ? plan.annual : plan.monthly}
+                  {(annual ? plan.annual : plan.monthly).toLocaleString()} ETB
                 </span>
                 <span className="pb-1.5 text-sm text-muted-foreground">/ month per pharmacy</span>
               </div>

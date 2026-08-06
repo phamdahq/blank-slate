@@ -61,7 +61,7 @@ const todayIso = () => {
 };
 
 const money = (n: number) =>
-  `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  `${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB`;
 
 function DashboardPage() {
   return (
@@ -232,7 +232,7 @@ function DashboardPageView() {
               <span className="font-mono-data">{data.window.label}</span>
             </div>
             <div className="rounded-full bg-primary-soft px-3 py-1 font-mono-data text-[11px] font-semibold text-primary-soft-foreground">
-              Avg: ${avg.toLocaleString()}/{range === "year" ? "mo" : "day"}
+              Avg: {avg.toLocaleString()} ETB/{range === "year" ? "mo" : "day"}
             </div>
           </div>
           <div className="h-[280px] w-full sm:h-[340px]">
@@ -262,7 +262,7 @@ function DashboardPageView() {
                     tickLine={false}
                     axisLine={false}
                     tickFormatter={(v) =>
-                      v >= 1000 ? `$${Math.round(v / 1000)}k` : `$${v}`
+                      v >= 1000 ? `${Math.round(v / 1000)}k` : `${v}`
                     }
                   />
                   <Tooltip

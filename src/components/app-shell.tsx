@@ -7,16 +7,31 @@ import {
   Bell,
   Pill,
   User,
+  ClipboardList,
+  Receipt,
+  Truck,
+  Store,
+
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { SyncStatus } from "@/components/sync-status";
 import { useSession } from "@/hooks/use-session";
+import { useOrdersEnabled } from "@/hooks/use-orders";
 import type { Role } from "@/db/session";
 
 
 type NavItem = {
-  to: "/dashboard" | "/pos" | "/inventory" | "/reports" | "/profile";
+  to:
+    | "/dashboard"
+    | "/pos"
+    | "/orders"
+    | "/sales"
+    | "/purchase-orders"
+    | "/marketplace"
+    | "/inventory"
+    | "/reports"
+    | "/profile";
   label: string;
   icon: typeof LayoutDashboard;
   match: string[];
@@ -27,6 +42,22 @@ type NavItem = {
 const navItems: NavItem[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, match: ["/dashboard"] },
   { to: "/pos", label: "POS", icon: ScanLine, match: ["/pos"] },
+  { to: "/orders", label: "Orders", icon: ClipboardList, match: ["/orders"] },
+  { to: "/sales", label: "Sales", icon: Receipt, match: ["/sales"] },
+  {
+    to: "/purchase-orders",
+    label: "Purchases",
+    icon: Truck,
+    match: ["/purchase-orders"],
+    roles: ["owner", "pharmacist"],
+  },
+  {
+    to: "/marketplace",
+    label: "Market",
+    icon: Store,
+    match: ["/marketplace"],
+    roles: ["owner", "pharmacist"],
+  },
   {
     to: "/inventory",
     label: "Inventory",
@@ -43,6 +74,7 @@ const navItems: NavItem[] = [
   },
   { to: "/profile", label: "Profile", icon: User, match: ["/profile"] },
 ];
+
 
 export function AppShell({
   children,
@@ -92,7 +124,12 @@ export function AppShellWithSlot({
 /** Nav filtered by the signed-in user's role. */
 function useNavItems(): NavItem[] {
   const { role } = useSession();
-  return navItems.filter((i) => !i.roles || (!!role && i.roles.includes(role)));
+  const ordersEnabled = useOrdersEnabled();
+  return navItems.filter(
+    (i) =>
+      (i.to !== "/orders" || ordersEnabled) &&
+      (!i.roles || (!!role && i.roles.includes(role))),
+  );
 }
 
 function initialsOf(first?: string, last?: string) {

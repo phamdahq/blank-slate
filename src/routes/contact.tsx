@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Building2, CheckCircle2, Clock, Mail, MapPin, Phone, Send, User } from "lucide-react";
+import { Building2, CheckCircle2, Clock, Mail, Phone, Send, User } from "lucide-react";
 import { MarketingLayout } from "@/components/marketing-layout";
 
 export const Route = createFileRoute("/contact")({
@@ -90,22 +90,17 @@ function ContactPage() {
           <ContactCard
             icon={<Mail className="h-5 w-5" />}
             title="Email us"
-            lines={["support@phamda.app", "sales@phamda.app"]}
+            lines={["phamdahub@gmail.com"]}
           />
           <ContactCard
             icon={<Phone className="h-5 w-5" />}
             title="Call us"
-            lines={["+251 91 555 0110", "+251 11 470 2200"]}
-          />
-          <ContactCard
-            icon={<MapPin className="h-5 w-5" />}
-            title="Visit"
-            lines={["Bole, Namibia Street", "Addis Ababa, Ethiopia"]}
+            lines={["+251 965439882"]}
           />
           <ContactCard
             icon={<Clock className="h-5 w-5" />}
             title="Support hours"
-            lines={["Mon–Sat · 08:00–20:00 EAT", "Enterprise: 24/7 on-call"]}
+            lines={["Mon–Sun · 08:00–20:00 EAT"]}
           />
         </aside>
 

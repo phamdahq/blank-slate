@@ -15,6 +15,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "../db/supabase";
 import { Toaster } from "@/components/ui/sonner";
 import { useSession } from "@/hooks/use-session";
+import { PaymentGate } from "@/components/payment-gate";
 import { pullAll, startRealtimeSync } from "@/services/sync/realtimeService";
 
 
@@ -208,6 +209,7 @@ function RootComponent() {
       <RealtimeBootstrap />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+      <PaymentGate />
       <Toaster />
     </QueryClientProvider>
   );

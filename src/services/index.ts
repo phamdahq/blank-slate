@@ -7,6 +7,9 @@ export * as pharmacyService from "./pharmacyService";
 export * as profileService from "./profileService";
 export * as inventoryService from "./inventoryService";
 export * as salesService from "./pos/salesService";
+export * as salesHistoryService from "./pos/salesHistoryService";
+export * as purchaseOrderService from "./purchasing/purchaseOrderService";
+
 export * as catalogService from "./pos/catalogService";
 export * as productService from "./admin/productService";
 export * as payoutService from "./admin/payoutService";

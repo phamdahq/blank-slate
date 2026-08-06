@@ -292,9 +292,9 @@ function KpiCard({
 
 const compactMoney = (n: number) => {
   const abs = Math.abs(n);
-  if (abs >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
-  if (abs >= 1_000) return `$${(n / 1_000).toFixed(1)}k`;
-  return `$${n.toFixed(0)}`;
+  if (abs >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M ETB`;
+  if (abs >= 1_000) return `${(n / 1_000).toFixed(1)}k ETB`;
+  return `${n.toFixed(0)} ETB`;
 };
 
 function SalesIntelligence({
@@ -426,7 +426,7 @@ function SalesIntelligence({
                   borderRadius: 8,
                   fontSize: 12,
                 }}
-                formatter={(v: number) => `$${v.toLocaleString()}`}
+                formatter={(v: number) => `${v.toLocaleString()} ETB`}
               />
               <Legend iconType="circle" wrapperStyle={{ fontSize: 12 }} />
               <Line type="monotone" dataKey="revenue" name="Revenue" stroke="#2563eb" strokeWidth={2.5} dot={false} />
@@ -701,7 +701,7 @@ function RestockTable({
               {m.reorderLevel} Units
             </Td>
             <Td align="right" className="font-mono-data text-foreground">
-              ${lastCost.toFixed(2)}
+              {lastCost.toFixed(2)} ETB
             </Td>
             <Td align="right">
               <button
@@ -821,11 +821,11 @@ function ExpiryTable() {
               {r.qty.toLocaleString()} Units
             </Td>
             <Td align="right" className="font-mono-data text-foreground">
-              $
               {(r.qty * (r.med.batches.find((b) => b.id === r.batchId)?.cost ?? 0)).toLocaleString(
                 undefined,
                 { maximumFractionDigits: 0 },
-              )}
+              )}{" "}
+              ETB
             </Td>
           </tr>
         );
@@ -899,7 +899,8 @@ function StagnantTable() {
             {r.med.stock.toLocaleString()} Units
           </Td>
           <Td align="right" className="font-mono-data font-semibold text-foreground">
-            ${(r.med.stock * r.unitCost).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            {(r.med.stock * r.unitCost).toLocaleString(undefined, { maximumFractionDigits: 0 })}{" "}
+            ETB
           </Td>
           <Td align="right">
             <span className="inline-flex h-7 items-center rounded-full bg-warning-soft px-2.5 font-mono-data text-xs font-semibold text-warning-soft-foreground">
@@ -977,7 +978,7 @@ function BestSellersTable({
               {r.units.toLocaleString()} Units
             </Td>
             <Td align="right" className="font-mono-data font-semibold text-primary">
-              ${r.revenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+              {r.revenue.toLocaleString(undefined, { maximumFractionDigits: 0 })} ETB
             </Td>
             <Td align="right">
               <span
@@ -1024,7 +1025,7 @@ function BestSellersTable({
 type ExpenseType = "Recurring" | "One-time";
 
 const money = (n: number) =>
-  `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  `${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB`;
 
 const prettyDate = (iso: string) => {
   const d = new Date(`${iso}T00:00:00`);
