@@ -9,7 +9,6 @@ CREATE TABLE IF NOT EXISTS public.pharmacies_purchase_orders (
   supplier_id UUID REFERENCES public.suppliers(id) ON DELETE SET NULL,
   supplier_name_fallback TEXT,
   order_date DATE NOT NULL DEFAULT CURRENT_DATE,
-  expected_delivery_date DATE,
   total_cost DECIMAL(12, 2) NOT NULL DEFAULT 0,
   left_balance DECIMAL(12, 2) NOT NULL DEFAULT 0,
   status TEXT NOT NULL DEFAULT 'Pending'

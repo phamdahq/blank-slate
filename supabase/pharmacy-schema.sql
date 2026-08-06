@@ -85,31 +85,3 @@ CREATE TABLE IF NOT EXISTS pharmacy_expenses (
   date DATE NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
-
-
--- Purchase Orders 
-CREATE TABLE IF NOT EXISTS pharmacies_purchase_orders (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    pharmacy_id UUID REFERENCES pharmacies(id) ON DELETE CASCADE,
-    supplier_id UUID REFERENCES suppliers(id) ON DELETE SET NULL, -- NULL if buying from an unregistered/ad-hoc supplier
-    supplier_name_fallback VARCHAR(255) NULL, -- Stores name if unregistered
-    order_date DATE NOT NULL,
-    total_cost DECIMAL(12, 2) NOT NULL,
-    left_balance DECIMAL(12, 2) DEFAULT 0.00, -- Remaining credit balance (0 means fully paid)
-    status VARCHAR(50) NOT NULL DEFAULT 'Received' CHECK (status IN ('Pending', 'Approved', 'Received', 'Cancelled')), -- Fulfillment status only
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
-);
-
--- Purchase Items Table
-CREATE TABLE IF NOT EXISTS pharmacy_purchase_order_items (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  purchase_order_id UUID REFERENCES public.pharmacies_purchase_orders(id) ON DELETE CASCADE,
-  product_id UUID REFERENCES public.products(id) ON DELETE RESTRICT,
-  supplier_batch_id UUID REFERENCES public.supplier_batches(id) ON DELETE SET NULL,
-  quantity_ordered INTEGER NOT NULL CHECK (quantity_ordered > 0),
-  unit_cost DECIMAL(10, 2) NOT NULL,
-  total_price DECIMAL(12, 2) NOT NULL,
-  batch_number TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
-);
-

@@ -91,3 +91,8 @@ CREATE TABLE supplier_expenses (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
+CREATE TABLE supplier_contacts (
+  supplier_id UUID PRIMARY KEY REFERENCES suppliers(id) ON DELETE CASCADE,
+  phone_number TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+)
