@@ -10,6 +10,7 @@ import {
   User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useSupplierContext } from "@/hooks/use-supplier";
 
 const NAV = [
   { to: "/supplier/dashboard", label: "Dashboard", icon: LayoutGrid },
@@ -31,6 +32,7 @@ export interface SupplierShellProps {
 export function SupplierShell({ title, subtitle, actions, children }: SupplierShellProps) {
   const [open, setOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { data: ctx } = useSupplierContext();
 
   return (
     <div className="flex min-h-screen bg-surface-low">
@@ -68,7 +70,7 @@ export function SupplierShell({ title, subtitle, actions, children }: SupplierSh
           })}
         </nav>
         <div className="border-t border-border px-6 py-4 text-xs text-muted-foreground">
-          Nile Medical Distributors PLC
+          {ctx?.companyName ?? "—"}
         </div>
       </aside>
 
@@ -99,4 +101,40 @@ export function SupplierShell({ title, subtitle, actions, children }: SupplierSh
       </div>
     </div>
   );
+}
+
+/** Consistent loading / error / empty placeholders for supplier screens. */
+export function SupplierState({
+  loading,
+  error,
+  empty,
+  emptyLabel = "Nothing here yet.",
+}: {
+  loading?: boolean;
+  error?: unknown;
+  empty?: boolean;
+  emptyLabel?: string;
+}) {
+  if (loading) {
+    return (
+      <div className="rounded-xl border border-border bg-surface p-10 text-center text-sm text-muted-foreground">
+        Loading…
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="rounded-xl border border-danger/30 bg-danger-soft p-6 text-center text-sm font-semibold text-danger-soft-foreground">
+        {error instanceof Error ? error.message : "Something went wrong."}
+      </div>
+    );
+  }
+  if (empty) {
+    return (
+      <div className="rounded-xl border border-border bg-surface p-10 text-center text-sm text-muted-foreground">
+        {emptyLabel}
+      </div>
+    );
+  }
+  return null;
 }

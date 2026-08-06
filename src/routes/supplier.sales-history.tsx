@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { SupplierShell } from "@/components/supplier/supplier-shell";
-import { PHARMACY_PARTNERS, SUPPLIER_SALES, birr, paymentStatus } from "@/lib/supplier-mock";
+import { useState } from "react";
+import { SupplierShell, SupplierState } from "@/components/supplier/supplier-shell";
+import { birr, paymentStatus } from "@/lib/supplier-format";
+import { usePharmacyPartners, useSalesHistory, useSupplierContext } from "@/hooks/use-supplier";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/supplier/sales-history")({
@@ -29,17 +30,13 @@ function SalesHistory() {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
 
-  const rows = useMemo(
-    () =>
-      SUPPLIER_SALES.filter((s) => {
-        if (pharmacy !== "all" && s.pharmacy_name !== pharmacy) return false;
-        if (from && s.date < from) return false;
-        if (to && s.date > to) return false;
-        return true;
-      }),
-    [pharmacy, from, to],
-  );
+  const { data: ctx, isLoading: ctxLoading, error: ctxError } = useSupplierContext();
+  const { data: partners } = usePharmacyPartners(ctx?.supplierId);
+  const { data, isLoading, error } = useSalesHistory(ctx?.supplierId, { pharmacy, from, to });
 
+  const rows = data ?? [];
+  const busy = ctxLoading || isLoading;
+  const err = ctxError ?? error;
   const total = rows.reduce((s, r) => s + r.total_amount, 0);
   const outstanding = rows.reduce((s, r) => s + r.left_balance, 0);
 
@@ -52,7 +49,7 @@ function SalesHistory() {
           className="h-11 rounded-lg border border-border bg-surface px-3 text-sm"
         >
           <option value="all">All pharmacy partners</option>
-          {PHARMACY_PARTNERS.map((p) => (
+          {(partners ?? []).map((p) => (
             <option key={p} value={p}>
               {p}
             </option>
@@ -80,56 +77,60 @@ function SalesHistory() {
         <Stat label="Outstanding credit" value={birr(outstanding)} />
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-border bg-surface shadow-elev-sm">
-        <table className="w-full min-w-[820px] text-sm">
-          <thead className="border-b border-border bg-surface-low text-left text-xs uppercase tracking-wide text-muted-foreground">
-            <tr>
-              <th className="px-5 py-3">Transaction ID</th>
-              <th className="px-5 py-3">Pharmacy</th>
-              <th className="px-5 py-3">Date</th>
-              <th className="px-5 py-3">Items sold</th>
-              <th className="px-5 py-3">Total amount</th>
-              <th className="px-5 py-3">Payment</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((s) => {
-              const status = paymentStatus(s.total_amount, s.left_balance);
-              return (
-                <tr key={s.id} className="border-b border-border last:border-0">
-                  <td className="px-5 py-4 font-mono-data font-semibold">{s.id}</td>
-                  <td className="px-5 py-4">{s.pharmacy_name}</td>
-                  <td className="px-5 py-4 text-muted-foreground">{s.date}</td>
-                  <td className="px-5 py-4">{s.items_sold.toLocaleString()}</td>
-                  <td className="px-5 py-4">{birr(s.total_amount)}</td>
-                  <td className="px-5 py-4">
-                    <span
-                      className={cn(
-                        "rounded-full px-2.5 py-1 text-xs font-semibold",
-                        status === "Paid"
-                          ? "bg-success-soft text-success-soft-foreground"
-                          : status === "Partial"
-                            ? "bg-warning-soft text-warning-soft-foreground"
-                            : "bg-danger-soft text-danger-soft-foreground",
-                      )}
-                    >
-                      {status}
-                      {s.left_balance > 0 ? ` · ${birr(s.left_balance)} left` : ""}
-                    </span>
+      {(busy || err) && <SupplierState loading={busy} error={err} />}
+
+      {!busy && !err && (
+        <div className="overflow-x-auto rounded-xl border border-border bg-surface shadow-elev-sm">
+          <table className="w-full min-w-[820px] text-sm">
+            <thead className="border-b border-border bg-surface-low text-left text-xs uppercase tracking-wide text-muted-foreground">
+              <tr>
+                <th className="px-5 py-3">Transaction ID</th>
+                <th className="px-5 py-3">Pharmacy</th>
+                <th className="px-5 py-3">Date</th>
+                <th className="px-5 py-3">Items sold</th>
+                <th className="px-5 py-3">Total amount</th>
+                <th className="px-5 py-3">Payment</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((s) => {
+                const status = paymentStatus(s.total_amount, s.left_balance);
+                return (
+                  <tr key={s.id} className="border-b border-border last:border-0">
+                    <td className="px-5 py-4 font-mono-data font-semibold">{s.id.slice(0, 8)}</td>
+                    <td className="px-5 py-4">{s.pharmacy_name}</td>
+                    <td className="px-5 py-4 text-muted-foreground">{s.date}</td>
+                    <td className="px-5 py-4">{s.items_sold.toLocaleString()}</td>
+                    <td className="px-5 py-4">{birr(s.total_amount)}</td>
+                    <td className="px-5 py-4">
+                      <span
+                        className={cn(
+                          "rounded-full px-2.5 py-1 text-xs font-semibold",
+                          status === "Paid"
+                            ? "bg-success-soft text-success-soft-foreground"
+                            : status === "Partial"
+                              ? "bg-warning-soft text-warning-soft-foreground"
+                              : "bg-danger-soft text-danger-soft-foreground",
+                        )}
+                      >
+                        {status}
+                        {s.left_balance > 0 ? ` · ${birr(s.left_balance)} left` : ""}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+              {rows.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-5 py-12 text-center text-muted-foreground">
+                    No transactions in this range.
                   </td>
                 </tr>
-              );
-            })}
-            {rows.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-5 py-12 text-center text-muted-foreground">
-                  No transactions in this range.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
     </SupplierShell>
   );
 }
