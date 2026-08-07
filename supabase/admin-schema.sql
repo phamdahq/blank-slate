@@ -1,7 +1,7 @@
 -- Enable UUID extension if not already enabled
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-CREATE TABLE products (
+CREATE TABLE IF NOT EXISTS products (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY ,
   name TEXT NOT NULL,
   generic_name TEXT, 
@@ -13,7 +13,7 @@ CREATE TABLE products (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
-CREATE TABLE medicine_packs (
+CREATE TABLE IF NOT EXISTS medicine_packs (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   product_id UUID REFERENCES products(id) ON DELETE CASCADE,
   pack_size INTEGER NOT NULL      -- e.g., 'Box of 100', 'Blister of 10', 'Bottle'
@@ -23,7 +23,7 @@ CREATE TABLE medicine_packs (
 -- ==========================================
 -- 2. Platform Administrators Table (Global SaaS Management)
 -- ==========================================
-CREATE TABLE platform_admins (
+CREATE TABLE IF NOT EXISTS platform_admins (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
@@ -38,7 +38,7 @@ CREATE TABLE platform_admins (
 -- ==========================================
 -- 1. Platform Support & Payment Configuration
 -- ==========================================
-CREATE TABLE platform_config (
+CREATE TABLE IF NOT EXISTS platform_config (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     payment_full_name TEXT,
     support_phone_number TEXT NOT NULL, -- Displayed in each pharmacy POS for troubleshooting/support
@@ -51,7 +51,7 @@ CREATE TABLE platform_config (
 -- ==========================================
 -- 3. Platform Payouts / Revenue Tracking
 -- ==========================================
-CREATE TABLE platform_pharmacies_payouts (
+CREATE TABLE IF NOT EXISTS platform_pharmacies_payouts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     pharmacy_id UUID REFERENCES pharmacies(id) ON DELETE CASCADE,
     amount DECIMAL(10, 2) NOT NULL,
@@ -62,7 +62,7 @@ CREATE TABLE platform_pharmacies_payouts (
     paid_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
-CREATE TABLE platform_suppliers_payouts (
+CREATE TABLE IF NOT EXISTS platform_suppliers_payouts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     supplier_id UUID REFERENCES suppliers(id) ON DELETE CASCADE,
     amount DECIMAL(10, 2) NOT NULL,
@@ -73,15 +73,15 @@ CREATE TABLE platform_suppliers_payouts (
     paid_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
-create table cities (
+create table IF NOT EXISTS cities (
   id uuid default gen_random_uuid() primary key,
   name text not null unique,
   country text not null default 'Ethiopia',
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
-create table contact_messages (
-  id uuid default gen_random_uuid() primary key,
+create table IF NOT EXISTS contact_messages (
+  id SERIAL PRIMARY KEY,
   pharmacy_name text not null,
   owner_name text not null,
   email text not null,

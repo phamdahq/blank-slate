@@ -85,3 +85,31 @@ CREATE TABLE IF NOT EXISTS pharmacy_expenses (
   date DATE NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
+
+-- ==========================================
+-- 2. INVENTORY ADJUSTMENTS & SHRINKAGE LOGS
+-- ==========================================
+CREATE TABLE IF NOT EXISTS pharmacy_inventory_adjustments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    pharmacy_id UUID REFERENCES pharmacies(id) ON DELETE CASCADE,
+    batch_id UUID REFERENCES pharmacy_batches(id) ON DELETE CASCADE,
+    adjusted_by UUID REFERENCES pharmacy_users(id),
+    quantity_change INTEGER NOT NULL, -- Can be negative (loss/damage) or positive (found stock)
+    reason TEXT CHECK (reason IN ('expired', 'damaged', 'theft', 'count_correction')),
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+-- ==========================================
+-- 3. TRANSACTION HEADERS (Grouping Multi-Item Sales Receipts)
+-- ==========================================
+CREATE TABLE IF NOT EXISTS pharmacy_sale_transactions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    receipt_number TEXT NOT NULL,
+    pharmacy_id UUID REFERENCES pharmacies(id) ON DELETE CASCADE,
+    sold_by UUID REFERENCES pharmacy_users(id),
+    total_amount DECIMAL(10, 2) NOT NULL,
+    total_profit DECIMAL(10, 2) NOT NULL,
+    sale_date TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+

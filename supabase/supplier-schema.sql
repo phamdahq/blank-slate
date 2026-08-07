@@ -2,7 +2,7 @@
 -- SUPPLIER TABLES
 -- ==========================================
 
-CREATE TABLE suppliers (
+CREATE TABLE IF NOT EXISTS suppliers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   country TEXT NOT NULL,
@@ -23,7 +23,7 @@ CREATE TABLE suppliers (
 );
 
 -- 6. Users Table (Staff & Admins)
-CREATE TABLE supplier_users (
+CREATE TABLE IF NOT EXISTS supplier_users (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE, -- Links to Supabase Auth user ID
   suppliers_id UUID REFERENCES suppliers(id) ON DELETE CASCADE,
   first_name TEXT NOT NULL,
@@ -36,7 +36,7 @@ CREATE TABLE supplier_users (
 );
 
 
-CREATE TABLE supplier_settings (
+CREATE TABLE IF NOT EXISTS supplier_settings (
   supplier_id UUID PRIMARY KEY REFERENCES suppliers(id) ON DELETE CASCADE,
   expire_level INTEGER DEFAULT 90,
   deadstock INTEGER DEFAULT 90,
@@ -45,7 +45,7 @@ CREATE TABLE supplier_settings (
 
 
 
-CREATE TABLE supplier_batches (
+CREATE TABLE IF NOT EXISTS supplier_batches (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(), -- Database-generated UUID
   supplier_id UUID REFERENCES suppliers(id) ON DELETE CASCADE,
   product_id UUID REFERENCES products(id) ON DELETE CASCADE,
@@ -62,7 +62,7 @@ CREATE TABLE supplier_batches (
 );
 
 -- 3. Sales Table
-CREATE TABLE supplier_sales (
+CREATE TABLE IF NOT EXISTS supplier_sales (
   id UUID PRIMARY KEY, 
   transaction_id TEXT,
   supplier_id UUID REFERENCES suppliers(id) ON DELETE CASCADE,
@@ -81,7 +81,7 @@ CREATE TABLE supplier_sales (
 );
 
 -- 4. Expenses Table
-CREATE TABLE supplier_expenses (
+CREATE TABLE IF NOT EXISTS supplier_expenses (
   id UUID PRIMARY KEY, -- Generated on the client side
   supplier_id UUID REFERENCES suppliers(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
@@ -91,8 +91,35 @@ CREATE TABLE supplier_expenses (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
-CREATE TABLE supplier_contacts (
+CREATE TABLE IF NOT EXISTS supplier_contacts (
   supplier_id UUID PRIMARY KEY REFERENCES suppliers(id) ON DELETE CASCADE,
   phone_number TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 )
+
+-- ==========================================
+-- 2. INVENTORY ADJUSTMENTS & SHRINKAGE LOGS
+-- ==========================================
+CREATE TABLE IF NOT EXISTS supplier_inventory_adjustments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    supplier_id UUID REFERENCES suppliers(id) ON DELETE CASCADE,
+    batch_id UUID REFERENCES supplier_batches(id) ON DELETE CASCADE,
+    adjusted_by UUID REFERENCES supplier_users(id),
+    quantity_change INTEGER NOT NULL,
+    reason TEXT CHECK (reason IN ('expired', 'damaged', 'loss', 'count_correction')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+-- ==========================================
+-- 3. TRANSACTION HEADERS (Grouping Multi-Item Sales Receipts)
+-- ==========================================
+CREATE TABLE IF NOT EXISTS supplier_sale_transactions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    receipt_number TEXT NOT NULL,
+    supplier_id UUID REFERENCES suppliers(id) ON DELETE CASCADE,
+    sold_by UUID REFERENCES supplier_users(id),
+    total_amount DECIMAL(10, 2) NOT NULL,
+    total_profit DECIMAL(10, 2) NOT NULL,
+    sale_date TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
