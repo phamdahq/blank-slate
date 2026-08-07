@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Building2, CheckCircle2, Clock, Mail, Phone, Send, User } from "lucide-react";
 import { MarketingLayout } from "@/components/marketing-layout";
+import { submitContactMessage } from "@/services/contactService";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
