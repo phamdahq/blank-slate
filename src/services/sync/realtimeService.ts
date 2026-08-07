@@ -108,7 +108,7 @@ export function startRealtimeSync(pharmacyId: string): () => void {
       {
         event: "*",
         schema: "public",
-        table: "batches",
+        table: "pharmacy_batches",
         filter: `pharmacy_id=eq.${pharmacyId}`,
       },
       makeHandler("batches"),
@@ -118,7 +118,7 @@ export function startRealtimeSync(pharmacyId: string): () => void {
       {
         event: "*",
         schema: "public",
-        table: "sales",
+        table: "pharmacy_sales",
         filter: `pharmacy_id=eq.${pharmacyId}`,
       },
       makeHandler("sales"),
@@ -128,7 +128,7 @@ export function startRealtimeSync(pharmacyId: string): () => void {
       {
         event: "*",
         schema: "public",
-        table: "expenses",
+        table: "pharmacy_expenses",
         filter: `pharmacy_id=eq.${pharmacyId}`,
       },
       makeHandler("expenses"),
