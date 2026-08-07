@@ -206,11 +206,18 @@ function ContactPage() {
                 )}
               </label>
 
+              {submitError && (
+                <p className="rounded-md bg-danger-soft px-3 py-2 text-xs text-danger">
+                  {submitError}
+                </p>
+              )}
+
               <button
                 type="submit"
-                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary-hover sm:w-auto sm:px-8"
+                disabled={sending}
+                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary-hover disabled:opacity-60 sm:w-auto sm:px-8"
               >
-                <Send className="h-4 w-4" /> Send inquiry
+                <Send className="h-4 w-4" /> {sending ? "Sending…" : "Send inquiry"}
               </button>
             </form>
           )}
