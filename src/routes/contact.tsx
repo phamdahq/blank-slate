@@ -63,11 +63,28 @@ function ContactPage() {
     return Object.keys(next).length === 0;
   }
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!validate()) return;
-    setSent(true);
-    setForm(EMPTY);
+    setSending(true);
+    setSubmitError(null);
+    try {
+      await submitContactMessage({
+        pharmacyName: form.pharmacyName,
+        ownerName: form.contactName,
+        email: form.email,
+        phoneNumber: form.phone,
+        message: form.message,
+      });
+      setSent(true);
+      setForm(EMPTY);
+    } catch (err) {
+      setSubmitError(
+        err instanceof Error ? err.message : "Something went wrong. Please try again.",
+      );
+    } finally {
+      setSending(false);
+    }
   }
 
   return (
