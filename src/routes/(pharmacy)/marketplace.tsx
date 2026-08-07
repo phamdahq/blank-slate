@@ -27,7 +27,7 @@ import {
 } from "@/services/marketplace/marketplaceService";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/marketplace")({
+export const Route = createFileRoute("/(pharmacy)/marketplace")({
   head: () => ({
     meta: [
       { title: "Supplier Marketplace · Phamda" },

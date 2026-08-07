@@ -21,7 +21,7 @@ export async function loadProfile(userId: string): Promise<UserRow | null> {
 
   if (navigator.onLine) {
     const { data, error } = await supabase
-      .from("users")
+      .from("pharmacy_users")
       .select("*")
       .eq("id", userId)
       .maybeSingle();

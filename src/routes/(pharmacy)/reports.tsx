@@ -44,7 +44,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 
-export const Route = createFileRoute("/reports")({
+export const Route = createFileRoute("/(pharmacy)/reports")({
   head: () => ({
     meta: [
       { title: "Reports & Financials · PharmaCore" },

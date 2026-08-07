@@ -14,7 +14,7 @@ export type StaffRole = "pharmacist" | "cashier";
 
 export async function listStaff(pharmacyId: string): Promise<UserRow[]> {
   const { data, error } = await supabase
-    .from("users")
+    .from("pharmacy_users")
     .select("*")
     .eq("pharmacy_id", pharmacyId)
     .order("created_at", { ascending: false });
@@ -23,7 +23,7 @@ export async function listStaff(pharmacyId: string): Promise<UserRow[]> {
 }
 
 export async function setStaffActive(id: string, is_active: boolean): Promise<void> {
-  const { error } = await supabase.from("users").update({ is_active }).eq("id", id);
+  const { error } = await supabase.from("pharmacy_users").update({ is_active }).eq("id", id);
   if (error) throw error;
 }
 
@@ -78,7 +78,7 @@ export async function inviteStaff(input: InviteStaffInput): Promise<UserRow> {
   };
 
   const { data, error } = await supabase
-    .from("users")
+    .from("pharmacy_users")
     .insert(row)
     .select("*")
     .single();

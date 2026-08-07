@@ -9,7 +9,7 @@ import { ordersRepo } from "@/db/orders";
 import type { OrderRow, OrderStatus } from "@/db/dexie";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/orders")({
+export const Route = createFileRoute("/(pharmacy)/orders")({
   head: () => ({
     meta: [
       { title: "Order Management · Phamda" },

@@ -10,7 +10,7 @@ import type { Product } from "@/db/dexie";
 import { useOnline } from "@/hooks/use-online";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/inventory_/add")({
+export const Route = createFileRoute("/(pharmacy)/inventory_/add")({
   head: () => ({
     meta: [
       { title: "Add Stock — Choose Product · PharmaCore" },

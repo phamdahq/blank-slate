@@ -27,7 +27,7 @@ import { useSession } from "@/hooks/use-session";
 import { useDashboard } from "@/hooks/use-dashboard";
 import type { DashboardRange } from "@/services/dashboardService";
 
-export const Route = createFileRoute("/dashboard")({
+export const Route = createFileRoute("/(pharmacy)/dashboard")({
   head: () => ({
     meta: [
       { title: "Dashboard · PharmaCore" },

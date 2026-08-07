@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Building2, CheckCircle2, Clock, Mail, Phone, Send, User } from "lucide-react";
 import { MarketingLayout } from "@/components/marketing-layout";
+import { submitContactMessage } from "@/services/contactService";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -44,6 +45,8 @@ function ContactPage() {
   const [form, setForm] = useState<Form>(EMPTY);
   const [errors, setErrors] = useState<Partial<Record<keyof Form, string>>>({});
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   function set<K extends keyof Form>(k: K, v: string) {
     setForm((f) => ({ ...f, [k]: v }));
@@ -61,11 +64,28 @@ function ContactPage() {
     return Object.keys(next).length === 0;
   }
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!validate()) return;
-    setSent(true);
-    setForm(EMPTY);
+    setSending(true);
+    setSubmitError(null);
+    try {
+      await submitContactMessage({
+        pharmacyName: form.pharmacyName,
+        ownerName: form.contactName,
+        email: form.email,
+        phoneNumber: form.phone,
+        message: form.message,
+      });
+      setSent(true);
+      setForm(EMPTY);
+    } catch (err) {
+      setSubmitError(
+        err instanceof Error ? err.message : "Something went wrong. Please try again.",
+      );
+    } finally {
+      setSending(false);
+    }
   }
 
   return (
@@ -186,11 +206,18 @@ function ContactPage() {
                 )}
               </label>
 
+              {submitError && (
+                <p className="rounded-md bg-danger-soft px-3 py-2 text-xs text-danger">
+                  {submitError}
+                </p>
+              )}
+
               <button
                 type="submit"
-                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary-hover sm:w-auto sm:px-8"
+                disabled={sending}
+                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary-hover disabled:opacity-60 sm:w-auto sm:px-8"
               >
-                <Send className="h-4 w-4" /> Send inquiry
+                <Send className="h-4 w-4" /> {sending ? "Sending…" : "Send inquiry"}
               </button>
             </form>
           )}

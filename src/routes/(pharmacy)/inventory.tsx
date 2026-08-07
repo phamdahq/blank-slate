@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils";
 
 
 
-export const Route = createFileRoute("/inventory")({
+export const Route = createFileRoute("/(pharmacy)/inventory")({
   head: () => ({
     meta: [
       { title: "Inventory · PharmaCore" },

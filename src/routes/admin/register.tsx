@@ -195,7 +195,7 @@ function RegisterPage() {
     }
 
     // 3. Link the new auth user as the pharmacy `owner`.
-    const { error: userError } = await supabase.from("users").insert({
+    const { error: userError } = await supabase.from("pharmacy_users").insert({
       id: newUserId,
       pharmacy_id: pharmacy.id,
       first_name: firstName,

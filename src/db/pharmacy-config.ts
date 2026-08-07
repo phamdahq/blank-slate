@@ -59,27 +59,12 @@ export const paymentAccountsRepo = {
     return db.payment_accounts.where("pharmacy_id").equals(pharmacyId).toArray();
   },
 
+  /**
+   * Payment accounts are a local-only concept today — there is no remote
+   * `payment_accounts` table in the schema, so this simply reads Dexie.
+   */
   async refresh(pharmacyId: string): Promise<PaymentAccount[]> {
     if (!isBrowser) return [];
-    if (navigator.onLine) {
-      const { data, error } = await supabase
-        .from("payment_accounts")
-        .select("id, pharmacy_id, provider, account_name, account_number, is_active, created_at")
-        .eq("pharmacy_id", pharmacyId)
-        .eq("is_active", true);
-      if (!error && data) {
-        const rows = data as PaymentAccount[];
-        await db.transaction("rw", db.payment_accounts, async () => {
-          const stale = await db.payment_accounts
-            .where("pharmacy_id")
-            .equals(pharmacyId)
-            .primaryKeys();
-          await db.payment_accounts.bulkDelete(stale);
-          await db.payment_accounts.bulkPut(rows);
-        });
-        return rows;
-      }
-    }
     return db.payment_accounts.where("pharmacy_id").equals(pharmacyId).toArray();
   },
 };

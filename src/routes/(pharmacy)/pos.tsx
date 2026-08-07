@@ -29,7 +29,7 @@ import { useOrdersEnabled } from "@/hooks/use-orders";
 
 
 
-export const Route = createFileRoute("/pos")({
+export const Route = createFileRoute("/(pharmacy)/pos")({
   head: () => ({
     meta: [
       { title: "POS · PharmaCore" },

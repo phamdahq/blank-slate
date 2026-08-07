@@ -48,12 +48,12 @@ AS $$
 DECLARE
   v_existing UUID;
 BEGIN
-  SELECT id INTO v_existing FROM sales WHERE id = p_sale_id;
+  SELECT id INTO v_existing FROM pharmacy_sales WHERE id = p_sale_id;
   IF v_existing IS NOT NULL THEN
     RETURN v_existing;
   END IF;
 
-  UPDATE batches
+  UPDATE pharmacy_batches
      SET quantity = quantity - p_quantity
    WHERE id = p_batch_id
      AND quantity >= p_quantity;
@@ -62,7 +62,7 @@ BEGIN
     RAISE EXCEPTION 'insufficient_stock' USING ERRCODE = 'P0001';
   END IF;
 
-  INSERT INTO sales (
+  INSERT INTO pharmacy_sales (
     id, transaction_id, pharmacy_id, product_id, batch_id,
     quantity_sold, cost_price_at_sale, selling_price_at_sale, sale_date
   ) VALUES (

@@ -41,7 +41,7 @@ import { orderSettingsRepo } from "@/db/orders";
 import { useOrdersEnabled } from "@/hooks/use-orders";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/profile")({
+export const Route = createFileRoute("/(pharmacy)/profile")({
   head: () => ({
     meta: [
       { title: "Profile & Settings · Phamda" },

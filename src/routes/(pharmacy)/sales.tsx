@@ -6,7 +6,6 @@ import {
   TrendingUp,
   Package,
   X,
-  Printer,
   ChevronLeft,
   ChevronRight,
   Users,
@@ -22,7 +21,7 @@ import {
 import type { SalesHistoryRow } from "@/services/pos/salesHistoryService";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/sales")({
+export const Route = createFileRoute("/(pharmacy)/sales")({
   head: () => ({
     meta: [
       { title: "Sales History · Phamda" },
@@ -34,7 +33,7 @@ export const Route = createFileRoute("/sales")({
       { property: "og:title", content: "Sales History · Phamda" },
       {
         property: "og:description",
-        content: "Audit transactions, filter by date or cashier and reprint receipts.",
+        content: "Audit transactions, filter by date or cashier and review receipts.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -418,13 +417,6 @@ function ReceiptModal({
             className="h-10 rounded-md border border-border px-4 text-sm font-medium"
           >
             Close
-          </button>
-          <button
-            type="button"
-            onClick={() => typeof window !== "undefined" && window.print()}
-            className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground"
-          >
-            <Printer className="h-4 w-4" /> Print
           </button>
         </div>
       </div>

@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
-import { Eye, EyeOff, Lock, Mail, Pill, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, Home, Lock, Mail, Pill, ShieldCheck } from "lucide-react";
 import { supabase } from "@/db/supabase";
 import { resolvePostLoginTarget } from "@/db/session";
 
@@ -101,7 +101,23 @@ function LoginPage() {
       </aside>
 
       {/* Right form panel */}
-      <section className="flex min-h-screen items-center justify-center px-5 py-10 sm:px-8">
+      <section className="relative flex min-h-screen items-center justify-center px-5 py-10 sm:px-8">
+        <header className="absolute inset-x-0 top-0 flex items-center justify-between px-5 py-4 sm:px-8">
+          <button
+            type="button"
+            onClick={() => router.history.back()}
+            className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border px-3 text-sm font-medium text-muted-foreground hover:bg-surface-low"
+          >
+            <ArrowLeft className="h-4 w-4" /> Back
+          </button>
+          <Link
+            to="/"
+            className="inline-flex h-9 items-center gap-1.5 rounded-md px-3 text-sm font-medium text-muted-foreground hover:bg-surface-low"
+          >
+            <Home className="h-4 w-4" /> Home
+          </Link>
+        </header>
+
         <div className="w-full max-w-sm">
           <div className="mb-8 flex items-center gap-2 lg:hidden">
             <div className="grid h-9 w-9 place-items-center rounded-md bg-primary text-primary-foreground">
@@ -109,6 +125,7 @@ function LoginPage() {
             </div>
             <span className="text-lg font-bold text-primary">Phamda</span>
           </div>
+
 
           <h2 className="text-2xl font-bold tracking-tight">Welcome back</h2>
           <p className="mt-1 text-sm text-muted-foreground">
