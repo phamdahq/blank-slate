@@ -44,6 +44,8 @@ function ContactPage() {
   const [form, setForm] = useState<Form>(EMPTY);
   const [errors, setErrors] = useState<Partial<Record<keyof Form, string>>>({});
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   function set<K extends keyof Form>(k: K, v: string) {
     setForm((f) => ({ ...f, [k]: v }));
