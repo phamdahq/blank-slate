@@ -17,7 +17,7 @@ import { useSession } from "@/hooks/use-session";
 import { inviteStaff, type StaffRole } from "@/services/admin/staffService";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/staff/add")({
+export const Route = createFileRoute("/(pharmacy)/staff/add")({
   head: () => ({
     meta: [
       { title: "Add Staff · Phamda" },

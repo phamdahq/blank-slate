@@ -9,126 +9,56 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SupplierRouteImport } from './routes/supplier'
-import { Route as SalesRouteImport } from './routes/sales'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as ReportsRouteImport } from './routes/reports'
-import { Route as RegisterRouteImport } from './routes/register'
-import { Route as PurchaseOrdersRouteImport } from './routes/purchase-orders'
-import { Route as ProfileRouteImport } from './routes/profile'
-import { Route as PricingRouteImport } from './routes/pricing'
-import { Route as PosRouteImport } from './routes/pos'
-import { Route as OrdersRouteImport } from './routes/orders'
-import { Route as MarketplaceRouteImport } from './routes/marketplace'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as InventoryRouteImport } from './routes/inventory'
-import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
-import { Route as FeaturesRouteImport } from './routes/features'
-import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as ContactRouteImport } from './routes/contact'
-import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as SupplierIndexRouteImport } from './routes/supplier.index'
-import { Route as AdminIndexRouteImport } from './routes/admin.index'
-import { Route as SupplierSalesHistoryRouteImport } from './routes/supplier.sales-history'
-import { Route as SupplierReportsRouteImport } from './routes/supplier.reports'
-import { Route as SupplierProfileRouteImport } from './routes/supplier.profile'
-import { Route as SupplierInventoryRouteImport } from './routes/supplier.inventory'
-import { Route as SupplierIncomingOrdersRouteImport } from './routes/supplier.incoming-orders'
-import { Route as SupplierDashboardRouteImport } from './routes/supplier.dashboard'
-import { Route as StaffAddRouteImport } from './routes/staff.add'
-import { Route as InventoryAddRouteImport } from './routes/inventory_.add'
-import { Route as AdminTeamRouteImport } from './routes/admin.team'
-import { Route as AdminSupportRouteImport } from './routes/admin.support'
-import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
-import { Route as AdminReportsRouteImport } from './routes/admin.reports'
-import { Route as AdminRegisterRouteImport } from './routes/admin.register'
-import { Route as AdminProfileRouteImport } from './routes/admin.profile'
-import { Route as AdminProductsRouteImport } from './routes/admin.products'
-import { Route as AdminPharmaciesRouteImport } from './routes/admin.pharmacies'
-import { Route as AdminPayoutRouteImport } from './routes/admin.payout'
-import { Route as AdminLogsRouteImport } from './routes/admin.logs'
-import { Route as InventoryAddProductIdRouteImport } from './routes/inventory_.add_.$productId'
-import { Route as AdminPharmaciesPharmacyIdRouteImport } from './routes/admin.pharmacies_.$pharmacyId'
+import { Route as AdminRouteRouteImport } from './routes/admin/route'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as FeaturesRouteImport } from './routes/features'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as RegisterRouteImport } from './routes/register'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as pharmacyDashboardRouteImport } from './routes/(pharmacy)/dashboard'
+import { Route as pharmacyInventoryRouteImport } from './routes/(pharmacy)/inventory'
+import { Route as pharmacyMarketplaceRouteImport } from './routes/(pharmacy)/marketplace'
+import { Route as pharmacyOrdersRouteImport } from './routes/(pharmacy)/orders'
+import { Route as pharmacyPosRouteImport } from './routes/(pharmacy)/pos'
+import { Route as pharmacyProfileRouteImport } from './routes/(pharmacy)/profile'
+import { Route as pharmacyPurchaseOrdersRouteImport } from './routes/(pharmacy)/purchase-orders'
+import { Route as pharmacyReportsRouteImport } from './routes/(pharmacy)/reports'
+import { Route as pharmacySalesRouteImport } from './routes/(pharmacy)/sales'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminLogsRouteImport } from './routes/admin/logs'
+import { Route as AdminPayoutRouteImport } from './routes/admin/payout'
+import { Route as AdminPharmaciesRouteImport } from './routes/admin/pharmacies'
+import { Route as AdminProductsRouteImport } from './routes/admin/products'
+import { Route as AdminProfileRouteImport } from './routes/admin/profile'
+import { Route as AdminRegisterRouteImport } from './routes/admin/register'
+import { Route as AdminReportsRouteImport } from './routes/admin/reports'
+import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
+import { Route as AdminSupportRouteImport } from './routes/admin/support'
+import { Route as AdminTeamRouteImport } from './routes/admin/team'
+import { Route as SupplierIndexRouteImport } from './routes/supplier/index'
+import { Route as SupplierDashboardRouteImport } from './routes/supplier/dashboard'
+import { Route as SupplierIncomingOrdersRouteImport } from './routes/supplier/incoming-orders'
+import { Route as SupplierInventoryRouteImport } from './routes/supplier/inventory'
+import { Route as SupplierProfileRouteImport } from './routes/supplier/profile'
+import { Route as SupplierReportsRouteImport } from './routes/supplier/reports'
+import { Route as SupplierRoutRouteImport } from './routes/supplier/rout'
+import { Route as SupplierSalesHistoryRouteImport } from './routes/supplier/sales-history'
+import { Route as pharmacyInventoryAddRouteImport } from './routes/(pharmacy)/inventory_.add'
+import { Route as pharmacyStaffAddRouteImport } from './routes/(pharmacy)/staff.add'
+import { Route as AdminPharmaciesPharmacyIdRouteImport } from './routes/admin/pharmacies_.$pharmacyId'
+import { Route as pharmacyInventoryAddProductIdRouteImport } from './routes/(pharmacy)/inventory_.add_.$productId'
 
-const SupplierRoute = SupplierRouteImport.update({
-  id: '/supplier',
-  path: '/supplier',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SalesRoute = SalesRouteImport.update({
-  id: '/sales',
-  path: '/sales',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ReportsRoute = ReportsRouteImport.update({
-  id: '/reports',
-  path: '/reports',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RegisterRoute = RegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PurchaseOrdersRoute = PurchaseOrdersRouteImport.update({
-  id: '/purchase-orders',
-  path: '/purchase-orders',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProfileRoute = ProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PricingRoute = PricingRouteImport.update({
-  id: '/pricing',
-  path: '/pricing',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PosRoute = PosRouteImport.update({
-  id: '/pos',
-  path: '/pos',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OrdersRoute = OrdersRouteImport.update({
-  id: '/orders',
-  path: '/orders',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MarketplaceRoute = MarketplaceRouteImport.update({
-  id: '/marketplace',
-  path: '/marketplace',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const InventoryRoute = InventoryRouteImport.update({
-  id: '/inventory',
-  path: '/inventory',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
-  id: '/forgot-password',
-  path: '/forgot-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FeaturesRoute = FeaturesRouteImport.update({
-  id: '/features',
-  path: '/features',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
+const AdminRouteRoute = AdminRouteRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -136,148 +66,218 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
+const FeaturesRoute = FeaturesRouteImport.update({
+  id: '/features',
+  path: '/features',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SupplierIndexRoute = SupplierIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => SupplierRoute,
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const pharmacyDashboardRoute = pharmacyDashboardRouteImport.update({
+  id: '/(pharmacy)/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const pharmacyInventoryRoute = pharmacyInventoryRouteImport.update({
+  id: '/(pharmacy)/inventory',
+  path: '/inventory',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const pharmacyMarketplaceRoute = pharmacyMarketplaceRouteImport.update({
+  id: '/(pharmacy)/marketplace',
+  path: '/marketplace',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const pharmacyOrdersRoute = pharmacyOrdersRouteImport.update({
+  id: '/(pharmacy)/orders',
+  path: '/orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const pharmacyPosRoute = pharmacyPosRouteImport.update({
+  id: '/(pharmacy)/pos',
+  path: '/pos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const pharmacyProfileRoute = pharmacyProfileRouteImport.update({
+  id: '/(pharmacy)/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const pharmacyPurchaseOrdersRoute = pharmacyPurchaseOrdersRouteImport.update({
+  id: '/(pharmacy)/purchase-orders',
+  path: '/purchase-orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const pharmacyReportsRoute = pharmacyReportsRouteImport.update({
+  id: '/(pharmacy)/reports',
+  path: '/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const pharmacySalesRoute = pharmacySalesRouteImport.update({
+  id: '/(pharmacy)/sales',
+  path: '/sales',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AdminRoute,
-} as any)
-const SupplierSalesHistoryRoute = SupplierSalesHistoryRouteImport.update({
-  id: '/sales-history',
-  path: '/sales-history',
-  getParentRoute: () => SupplierRoute,
-} as any)
-const SupplierReportsRoute = SupplierReportsRouteImport.update({
-  id: '/reports',
-  path: '/reports',
-  getParentRoute: () => SupplierRoute,
-} as any)
-const SupplierProfileRoute = SupplierProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => SupplierRoute,
-} as any)
-const SupplierInventoryRoute = SupplierInventoryRouteImport.update({
-  id: '/inventory',
-  path: '/inventory',
-  getParentRoute: () => SupplierRoute,
-} as any)
-const SupplierIncomingOrdersRoute = SupplierIncomingOrdersRouteImport.update({
-  id: '/incoming-orders',
-  path: '/incoming-orders',
-  getParentRoute: () => SupplierRoute,
-} as any)
-const SupplierDashboardRoute = SupplierDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => SupplierRoute,
-} as any)
-const StaffAddRoute = StaffAddRouteImport.update({
-  id: '/staff/add',
-  path: '/staff/add',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const InventoryAddRoute = InventoryAddRouteImport.update({
-  id: '/inventory_/add',
-  path: '/inventory/add',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminTeamRoute = AdminTeamRouteImport.update({
-  id: '/team',
-  path: '/team',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminSupportRoute = AdminSupportRouteImport.update({
-  id: '/support',
-  path: '/support',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminSettingsRoute = AdminSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminReportsRoute = AdminReportsRouteImport.update({
-  id: '/reports',
-  path: '/reports',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminRegisterRoute = AdminRegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminProfileRoute = AdminProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminProductsRoute = AdminProductsRouteImport.update({
-  id: '/products',
-  path: '/products',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminPharmaciesRoute = AdminPharmaciesRouteImport.update({
-  id: '/pharmacies',
-  path: '/pharmacies',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminPayoutRoute = AdminPayoutRouteImport.update({
-  id: '/payout',
-  path: '/payout',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminLogsRoute = AdminLogsRouteImport.update({
   id: '/logs',
   path: '/logs',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AdminRouteRoute,
 } as any)
-const InventoryAddProductIdRoute = InventoryAddProductIdRouteImport.update({
-  id: '/inventory_/add_/$productId',
-  path: '/inventory/add/$productId',
+const AdminPayoutRoute = AdminPayoutRouteImport.update({
+  id: '/payout',
+  path: '/payout',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminPharmaciesRoute = AdminPharmaciesRouteImport.update({
+  id: '/pharmacies',
+  path: '/pharmacies',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminProductsRoute = AdminProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminProfileRoute = AdminProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminRegisterRoute = AdminRegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminReportsRoute = AdminReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminSupportRoute = AdminSupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminTeamRoute = AdminTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const SupplierIndexRoute = SupplierIndexRouteImport.update({
+  id: '/supplier/',
+  path: '/supplier/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SupplierDashboardRoute = SupplierDashboardRouteImport.update({
+  id: '/supplier/dashboard',
+  path: '/supplier/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SupplierIncomingOrdersRoute = SupplierIncomingOrdersRouteImport.update({
+  id: '/supplier/incoming-orders',
+  path: '/supplier/incoming-orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SupplierInventoryRoute = SupplierInventoryRouteImport.update({
+  id: '/supplier/inventory',
+  path: '/supplier/inventory',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SupplierProfileRoute = SupplierProfileRouteImport.update({
+  id: '/supplier/profile',
+  path: '/supplier/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SupplierReportsRoute = SupplierReportsRouteImport.update({
+  id: '/supplier/reports',
+  path: '/supplier/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SupplierRoutRoute = SupplierRoutRouteImport.update({
+  id: '/supplier/rout',
+  path: '/supplier/rout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SupplierSalesHistoryRoute = SupplierSalesHistoryRouteImport.update({
+  id: '/supplier/sales-history',
+  path: '/supplier/sales-history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const pharmacyInventoryAddRoute = pharmacyInventoryAddRouteImport.update({
+  id: '/(pharmacy)/inventory_/add',
+  path: '/inventory/add',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const pharmacyStaffAddRoute = pharmacyStaffAddRouteImport.update({
+  id: '/(pharmacy)/staff/add',
+  path: '/staff/add',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminPharmaciesPharmacyIdRoute =
   AdminPharmaciesPharmacyIdRouteImport.update({
     id: '/pharmacies_/$pharmacyId',
     path: '/pharmacies/$pharmacyId',
-    getParentRoute: () => AdminRoute,
+    getParentRoute: () => AdminRouteRoute,
+  } as any)
+const pharmacyInventoryAddProductIdRoute =
+  pharmacyInventoryAddProductIdRouteImport.update({
+    id: '/(pharmacy)/inventory_/add_/$productId',
+    path: '/inventory/add/$productId',
+    getParentRoute: () => rootRouteImport,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRouteWithChildren
+  '/admin': typeof AdminRouteRouteWithChildren
   '/contact': typeof ContactRoute
-  '/dashboard': typeof DashboardRoute
   '/features': typeof FeaturesRoute
   '/forgot-password': typeof ForgotPasswordRoute
-  '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
-  '/marketplace': typeof MarketplaceRoute
-  '/orders': typeof OrdersRoute
-  '/pos': typeof PosRoute
   '/pricing': typeof PricingRoute
-  '/profile': typeof ProfileRoute
-  '/purchase-orders': typeof PurchaseOrdersRoute
   '/register': typeof RegisterRoute
-  '/reports': typeof ReportsRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/sales': typeof SalesRoute
-  '/supplier': typeof SupplierRouteWithChildren
+  '/dashboard': typeof pharmacyDashboardRoute
+  '/inventory': typeof pharmacyInventoryRoute
+  '/marketplace': typeof pharmacyMarketplaceRoute
+  '/orders': typeof pharmacyOrdersRoute
+  '/pos': typeof pharmacyPosRoute
+  '/profile': typeof pharmacyProfileRoute
+  '/purchase-orders': typeof pharmacyPurchaseOrdersRoute
+  '/reports': typeof pharmacyReportsRoute
+  '/sales': typeof pharmacySalesRoute
   '/admin/logs': typeof AdminLogsRoute
   '/admin/payout': typeof AdminPayoutRoute
   '/admin/pharmacies': typeof AdminPharmaciesRoute
@@ -288,37 +288,38 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/support': typeof AdminSupportRoute
   '/admin/team': typeof AdminTeamRoute
-  '/inventory/add': typeof InventoryAddRoute
-  '/staff/add': typeof StaffAddRoute
   '/supplier/dashboard': typeof SupplierDashboardRoute
   '/supplier/incoming-orders': typeof SupplierIncomingOrdersRoute
   '/supplier/inventory': typeof SupplierInventoryRoute
   '/supplier/profile': typeof SupplierProfileRoute
   '/supplier/reports': typeof SupplierReportsRoute
+  '/supplier/rout': typeof SupplierRoutRoute
   '/supplier/sales-history': typeof SupplierSalesHistoryRoute
   '/admin/': typeof AdminIndexRoute
   '/supplier/': typeof SupplierIndexRoute
+  '/inventory/add': typeof pharmacyInventoryAddRoute
+  '/staff/add': typeof pharmacyStaffAddRoute
   '/admin/pharmacies/$pharmacyId': typeof AdminPharmaciesPharmacyIdRoute
-  '/inventory/add/$productId': typeof InventoryAddProductIdRoute
+  '/inventory/add/$productId': typeof pharmacyInventoryAddProductIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/contact': typeof ContactRoute
-  '/dashboard': typeof DashboardRoute
   '/features': typeof FeaturesRoute
   '/forgot-password': typeof ForgotPasswordRoute
-  '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
-  '/marketplace': typeof MarketplaceRoute
-  '/orders': typeof OrdersRoute
-  '/pos': typeof PosRoute
   '/pricing': typeof PricingRoute
-  '/profile': typeof ProfileRoute
-  '/purchase-orders': typeof PurchaseOrdersRoute
   '/register': typeof RegisterRoute
-  '/reports': typeof ReportsRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/sales': typeof SalesRoute
+  '/dashboard': typeof pharmacyDashboardRoute
+  '/inventory': typeof pharmacyInventoryRoute
+  '/marketplace': typeof pharmacyMarketplaceRoute
+  '/orders': typeof pharmacyOrdersRoute
+  '/pos': typeof pharmacyPosRoute
+  '/profile': typeof pharmacyProfileRoute
+  '/purchase-orders': typeof pharmacyPurchaseOrdersRoute
+  '/reports': typeof pharmacyReportsRoute
+  '/sales': typeof pharmacySalesRoute
   '/admin/logs': typeof AdminLogsRoute
   '/admin/payout': typeof AdminPayoutRoute
   '/admin/pharmacies': typeof AdminPharmaciesRoute
@@ -329,40 +330,40 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/support': typeof AdminSupportRoute
   '/admin/team': typeof AdminTeamRoute
-  '/inventory/add': typeof InventoryAddRoute
-  '/staff/add': typeof StaffAddRoute
   '/supplier/dashboard': typeof SupplierDashboardRoute
   '/supplier/incoming-orders': typeof SupplierIncomingOrdersRoute
   '/supplier/inventory': typeof SupplierInventoryRoute
   '/supplier/profile': typeof SupplierProfileRoute
   '/supplier/reports': typeof SupplierReportsRoute
+  '/supplier/rout': typeof SupplierRoutRoute
   '/supplier/sales-history': typeof SupplierSalesHistoryRoute
   '/admin': typeof AdminIndexRoute
   '/supplier': typeof SupplierIndexRoute
+  '/inventory/add': typeof pharmacyInventoryAddRoute
+  '/staff/add': typeof pharmacyStaffAddRoute
   '/admin/pharmacies/$pharmacyId': typeof AdminPharmaciesPharmacyIdRoute
-  '/inventory/add/$productId': typeof InventoryAddProductIdRoute
+  '/inventory/add/$productId': typeof pharmacyInventoryAddProductIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRouteWithChildren
+  '/admin': typeof AdminRouteRouteWithChildren
   '/contact': typeof ContactRoute
-  '/dashboard': typeof DashboardRoute
   '/features': typeof FeaturesRoute
   '/forgot-password': typeof ForgotPasswordRoute
-  '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
-  '/marketplace': typeof MarketplaceRoute
-  '/orders': typeof OrdersRoute
-  '/pos': typeof PosRoute
   '/pricing': typeof PricingRoute
-  '/profile': typeof ProfileRoute
-  '/purchase-orders': typeof PurchaseOrdersRoute
   '/register': typeof RegisterRoute
-  '/reports': typeof ReportsRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/sales': typeof SalesRoute
-  '/supplier': typeof SupplierRouteWithChildren
+  '/(pharmacy)/dashboard': typeof pharmacyDashboardRoute
+  '/(pharmacy)/inventory': typeof pharmacyInventoryRoute
+  '/(pharmacy)/marketplace': typeof pharmacyMarketplaceRoute
+  '/(pharmacy)/orders': typeof pharmacyOrdersRoute
+  '/(pharmacy)/pos': typeof pharmacyPosRoute
+  '/(pharmacy)/profile': typeof pharmacyProfileRoute
+  '/(pharmacy)/purchase-orders': typeof pharmacyPurchaseOrdersRoute
+  '/(pharmacy)/reports': typeof pharmacyReportsRoute
+  '/(pharmacy)/sales': typeof pharmacySalesRoute
   '/admin/logs': typeof AdminLogsRoute
   '/admin/payout': typeof AdminPayoutRoute
   '/admin/pharmacies': typeof AdminPharmaciesRoute
@@ -373,18 +374,19 @@ export interface FileRoutesById {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/support': typeof AdminSupportRoute
   '/admin/team': typeof AdminTeamRoute
-  '/inventory_/add': typeof InventoryAddRoute
-  '/staff/add': typeof StaffAddRoute
   '/supplier/dashboard': typeof SupplierDashboardRoute
   '/supplier/incoming-orders': typeof SupplierIncomingOrdersRoute
   '/supplier/inventory': typeof SupplierInventoryRoute
   '/supplier/profile': typeof SupplierProfileRoute
   '/supplier/reports': typeof SupplierReportsRoute
+  '/supplier/rout': typeof SupplierRoutRoute
   '/supplier/sales-history': typeof SupplierSalesHistoryRoute
   '/admin/': typeof AdminIndexRoute
   '/supplier/': typeof SupplierIndexRoute
+  '/(pharmacy)/inventory_/add': typeof pharmacyInventoryAddRoute
+  '/(pharmacy)/staff/add': typeof pharmacyStaffAddRoute
   '/admin/pharmacies_/$pharmacyId': typeof AdminPharmaciesPharmacyIdRoute
-  '/inventory_/add_/$productId': typeof InventoryAddProductIdRoute
+  '/(pharmacy)/inventory_/add_/$productId': typeof pharmacyInventoryAddProductIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -392,22 +394,21 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/contact'
-    | '/dashboard'
     | '/features'
     | '/forgot-password'
-    | '/inventory'
     | '/login'
+    | '/pricing'
+    | '/register'
+    | '/reset-password'
+    | '/dashboard'
+    | '/inventory'
     | '/marketplace'
     | '/orders'
     | '/pos'
-    | '/pricing'
     | '/profile'
     | '/purchase-orders'
-    | '/register'
     | '/reports'
-    | '/reset-password'
     | '/sales'
-    | '/supplier'
     | '/admin/logs'
     | '/admin/payout'
     | '/admin/pharmacies'
@@ -418,36 +419,37 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/support'
     | '/admin/team'
-    | '/inventory/add'
-    | '/staff/add'
     | '/supplier/dashboard'
     | '/supplier/incoming-orders'
     | '/supplier/inventory'
     | '/supplier/profile'
     | '/supplier/reports'
+    | '/supplier/rout'
     | '/supplier/sales-history'
     | '/admin/'
     | '/supplier/'
+    | '/inventory/add'
+    | '/staff/add'
     | '/admin/pharmacies/$pharmacyId'
     | '/inventory/add/$productId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/contact'
-    | '/dashboard'
     | '/features'
     | '/forgot-password'
-    | '/inventory'
     | '/login'
+    | '/pricing'
+    | '/register'
+    | '/reset-password'
+    | '/dashboard'
+    | '/inventory'
     | '/marketplace'
     | '/orders'
     | '/pos'
-    | '/pricing'
     | '/profile'
     | '/purchase-orders'
-    | '/register'
     | '/reports'
-    | '/reset-password'
     | '/sales'
     | '/admin/logs'
     | '/admin/payout'
@@ -459,16 +461,17 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/support'
     | '/admin/team'
-    | '/inventory/add'
-    | '/staff/add'
     | '/supplier/dashboard'
     | '/supplier/incoming-orders'
     | '/supplier/inventory'
     | '/supplier/profile'
     | '/supplier/reports'
+    | '/supplier/rout'
     | '/supplier/sales-history'
     | '/admin'
     | '/supplier'
+    | '/inventory/add'
+    | '/staff/add'
     | '/admin/pharmacies/$pharmacyId'
     | '/inventory/add/$productId'
   id:
@@ -476,22 +479,21 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/contact'
-    | '/dashboard'
     | '/features'
     | '/forgot-password'
-    | '/inventory'
     | '/login'
-    | '/marketplace'
-    | '/orders'
-    | '/pos'
     | '/pricing'
-    | '/profile'
-    | '/purchase-orders'
     | '/register'
-    | '/reports'
     | '/reset-password'
-    | '/sales'
-    | '/supplier'
+    | '/(pharmacy)/dashboard'
+    | '/(pharmacy)/inventory'
+    | '/(pharmacy)/marketplace'
+    | '/(pharmacy)/orders'
+    | '/(pharmacy)/pos'
+    | '/(pharmacy)/profile'
+    | '/(pharmacy)/purchase-orders'
+    | '/(pharmacy)/reports'
+    | '/(pharmacy)/sales'
     | '/admin/logs'
     | '/admin/payout'
     | '/admin/pharmacies'
@@ -502,157 +504,67 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/support'
     | '/admin/team'
-    | '/inventory_/add'
-    | '/staff/add'
     | '/supplier/dashboard'
     | '/supplier/incoming-orders'
     | '/supplier/inventory'
     | '/supplier/profile'
     | '/supplier/reports'
+    | '/supplier/rout'
     | '/supplier/sales-history'
     | '/admin/'
     | '/supplier/'
+    | '/(pharmacy)/inventory_/add'
+    | '/(pharmacy)/staff/add'
     | '/admin/pharmacies_/$pharmacyId'
-    | '/inventory_/add_/$productId'
+    | '/(pharmacy)/inventory_/add_/$productId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRouteWithChildren
+  AdminRouteRoute: typeof AdminRouteRouteWithChildren
   ContactRoute: typeof ContactRoute
-  DashboardRoute: typeof DashboardRoute
   FeaturesRoute: typeof FeaturesRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
-  InventoryRoute: typeof InventoryRoute
   LoginRoute: typeof LoginRoute
-  MarketplaceRoute: typeof MarketplaceRoute
-  OrdersRoute: typeof OrdersRoute
-  PosRoute: typeof PosRoute
   PricingRoute: typeof PricingRoute
-  ProfileRoute: typeof ProfileRoute
-  PurchaseOrdersRoute: typeof PurchaseOrdersRoute
   RegisterRoute: typeof RegisterRoute
-  ReportsRoute: typeof ReportsRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
-  SalesRoute: typeof SalesRoute
-  SupplierRoute: typeof SupplierRouteWithChildren
-  InventoryAddRoute: typeof InventoryAddRoute
-  StaffAddRoute: typeof StaffAddRoute
-  InventoryAddProductIdRoute: typeof InventoryAddProductIdRoute
+  pharmacyDashboardRoute: typeof pharmacyDashboardRoute
+  pharmacyInventoryRoute: typeof pharmacyInventoryRoute
+  pharmacyMarketplaceRoute: typeof pharmacyMarketplaceRoute
+  pharmacyOrdersRoute: typeof pharmacyOrdersRoute
+  pharmacyPosRoute: typeof pharmacyPosRoute
+  pharmacyProfileRoute: typeof pharmacyProfileRoute
+  pharmacyPurchaseOrdersRoute: typeof pharmacyPurchaseOrdersRoute
+  pharmacyReportsRoute: typeof pharmacyReportsRoute
+  pharmacySalesRoute: typeof pharmacySalesRoute
+  SupplierDashboardRoute: typeof SupplierDashboardRoute
+  SupplierIncomingOrdersRoute: typeof SupplierIncomingOrdersRoute
+  SupplierInventoryRoute: typeof SupplierInventoryRoute
+  SupplierProfileRoute: typeof SupplierProfileRoute
+  SupplierReportsRoute: typeof SupplierReportsRoute
+  SupplierRoutRoute: typeof SupplierRoutRoute
+  SupplierSalesHistoryRoute: typeof SupplierSalesHistoryRoute
+  SupplierIndexRoute: typeof SupplierIndexRoute
+  pharmacyInventoryAddRoute: typeof pharmacyInventoryAddRoute
+  pharmacyStaffAddRoute: typeof pharmacyStaffAddRoute
+  pharmacyInventoryAddProductIdRoute: typeof pharmacyInventoryAddProductIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/supplier': {
-      id: '/supplier'
-      path: '/supplier'
-      fullPath: '/supplier'
-      preLoaderRoute: typeof SupplierRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/sales': {
-      id: '/sales'
-      path: '/sales'
-      fullPath: '/sales'
-      preLoaderRoute: typeof SalesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reports': {
-      id: '/reports'
-      path: '/reports'
-      fullPath: '/reports'
-      preLoaderRoute: typeof ReportsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/register': {
-      id: '/register'
-      path: '/register'
-      fullPath: '/register'
-      preLoaderRoute: typeof RegisterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/purchase-orders': {
-      id: '/purchase-orders'
-      path: '/purchase-orders'
-      fullPath: '/purchase-orders'
-      preLoaderRoute: typeof PurchaseOrdersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/profile': {
-      id: '/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof ProfileRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pricing': {
-      id: '/pricing'
-      path: '/pricing'
-      fullPath: '/pricing'
-      preLoaderRoute: typeof PricingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pos': {
-      id: '/pos'
-      path: '/pos'
-      fullPath: '/pos'
-      preLoaderRoute: typeof PosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/orders': {
-      id: '/orders'
-      path: '/orders'
-      fullPath: '/orders'
-      preLoaderRoute: typeof OrdersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/marketplace': {
-      id: '/marketplace'
-      path: '/marketplace'
-      fullPath: '/marketplace'
-      preLoaderRoute: typeof MarketplaceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/inventory': {
-      id: '/inventory'
-      path: '/inventory'
-      fullPath: '/inventory'
-      preLoaderRoute: typeof InventoryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/forgot-password': {
-      id: '/forgot-password'
-      path: '/forgot-password'
-      fullPath: '/forgot-password'
-      preLoaderRoute: typeof ForgotPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/features': {
-      id: '/features'
-      path: '/features'
-      fullPath: '/features'
-      preLoaderRoute: typeof FeaturesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -662,165 +574,256 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
+    '/features': {
+      id: '/features'
+      path: '/features'
+      fullPath: '/features'
+      preLoaderRoute: typeof FeaturesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/supplier/': {
-      id: '/supplier/'
-      path: '/'
-      fullPath: '/supplier/'
-      preLoaderRoute: typeof SupplierIndexRouteImport
-      parentRoute: typeof SupplierRoute
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(pharmacy)/dashboard': {
+      id: '/(pharmacy)/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof pharmacyDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(pharmacy)/inventory': {
+      id: '/(pharmacy)/inventory'
+      path: '/inventory'
+      fullPath: '/inventory'
+      preLoaderRoute: typeof pharmacyInventoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(pharmacy)/marketplace': {
+      id: '/(pharmacy)/marketplace'
+      path: '/marketplace'
+      fullPath: '/marketplace'
+      preLoaderRoute: typeof pharmacyMarketplaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(pharmacy)/orders': {
+      id: '/(pharmacy)/orders'
+      path: '/orders'
+      fullPath: '/orders'
+      preLoaderRoute: typeof pharmacyOrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(pharmacy)/pos': {
+      id: '/(pharmacy)/pos'
+      path: '/pos'
+      fullPath: '/pos'
+      preLoaderRoute: typeof pharmacyPosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(pharmacy)/profile': {
+      id: '/(pharmacy)/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof pharmacyProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(pharmacy)/purchase-orders': {
+      id: '/(pharmacy)/purchase-orders'
+      path: '/purchase-orders'
+      fullPath: '/purchase-orders'
+      preLoaderRoute: typeof pharmacyPurchaseOrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(pharmacy)/reports': {
+      id: '/(pharmacy)/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof pharmacyReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(pharmacy)/sales': {
+      id: '/(pharmacy)/sales'
+      path: '/sales'
+      fullPath: '/sales'
+      preLoaderRoute: typeof pharmacySalesRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/admin/': {
       id: '/admin/'
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/supplier/sales-history': {
-      id: '/supplier/sales-history'
-      path: '/sales-history'
-      fullPath: '/supplier/sales-history'
-      preLoaderRoute: typeof SupplierSalesHistoryRouteImport
-      parentRoute: typeof SupplierRoute
-    }
-    '/supplier/reports': {
-      id: '/supplier/reports'
-      path: '/reports'
-      fullPath: '/supplier/reports'
-      preLoaderRoute: typeof SupplierReportsRouteImport
-      parentRoute: typeof SupplierRoute
-    }
-    '/supplier/profile': {
-      id: '/supplier/profile'
-      path: '/profile'
-      fullPath: '/supplier/profile'
-      preLoaderRoute: typeof SupplierProfileRouteImport
-      parentRoute: typeof SupplierRoute
-    }
-    '/supplier/inventory': {
-      id: '/supplier/inventory'
-      path: '/inventory'
-      fullPath: '/supplier/inventory'
-      preLoaderRoute: typeof SupplierInventoryRouteImport
-      parentRoute: typeof SupplierRoute
-    }
-    '/supplier/incoming-orders': {
-      id: '/supplier/incoming-orders'
-      path: '/incoming-orders'
-      fullPath: '/supplier/incoming-orders'
-      preLoaderRoute: typeof SupplierIncomingOrdersRouteImport
-      parentRoute: typeof SupplierRoute
-    }
-    '/supplier/dashboard': {
-      id: '/supplier/dashboard'
-      path: '/dashboard'
-      fullPath: '/supplier/dashboard'
-      preLoaderRoute: typeof SupplierDashboardRouteImport
-      parentRoute: typeof SupplierRoute
-    }
-    '/staff/add': {
-      id: '/staff/add'
-      path: '/staff/add'
-      fullPath: '/staff/add'
-      preLoaderRoute: typeof StaffAddRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/inventory_/add': {
-      id: '/inventory_/add'
-      path: '/inventory/add'
-      fullPath: '/inventory/add'
-      preLoaderRoute: typeof InventoryAddRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/team': {
-      id: '/admin/team'
-      path: '/team'
-      fullPath: '/admin/team'
-      preLoaderRoute: typeof AdminTeamRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/support': {
-      id: '/admin/support'
-      path: '/support'
-      fullPath: '/admin/support'
-      preLoaderRoute: typeof AdminSupportRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/settings': {
-      id: '/admin/settings'
-      path: '/settings'
-      fullPath: '/admin/settings'
-      preLoaderRoute: typeof AdminSettingsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/reports': {
-      id: '/admin/reports'
-      path: '/reports'
-      fullPath: '/admin/reports'
-      preLoaderRoute: typeof AdminReportsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/register': {
-      id: '/admin/register'
-      path: '/register'
-      fullPath: '/admin/register'
-      preLoaderRoute: typeof AdminRegisterRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/profile': {
-      id: '/admin/profile'
-      path: '/profile'
-      fullPath: '/admin/profile'
-      preLoaderRoute: typeof AdminProfileRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/products': {
-      id: '/admin/products'
-      path: '/products'
-      fullPath: '/admin/products'
-      preLoaderRoute: typeof AdminProductsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/pharmacies': {
-      id: '/admin/pharmacies'
-      path: '/pharmacies'
-      fullPath: '/admin/pharmacies'
-      preLoaderRoute: typeof AdminPharmaciesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/payout': {
-      id: '/admin/payout'
-      path: '/payout'
-      fullPath: '/admin/payout'
-      preLoaderRoute: typeof AdminPayoutRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/logs': {
       id: '/admin/logs'
       path: '/logs'
       fullPath: '/admin/logs'
       preLoaderRoute: typeof AdminLogsRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof AdminRouteRoute
     }
-    '/inventory_/add_/$productId': {
-      id: '/inventory_/add_/$productId'
-      path: '/inventory/add/$productId'
-      fullPath: '/inventory/add/$productId'
-      preLoaderRoute: typeof InventoryAddProductIdRouteImport
+    '/admin/payout': {
+      id: '/admin/payout'
+      path: '/payout'
+      fullPath: '/admin/payout'
+      preLoaderRoute: typeof AdminPayoutRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/pharmacies': {
+      id: '/admin/pharmacies'
+      path: '/pharmacies'
+      fullPath: '/admin/pharmacies'
+      preLoaderRoute: typeof AdminPharmaciesRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/products': {
+      id: '/admin/products'
+      path: '/products'
+      fullPath: '/admin/products'
+      preLoaderRoute: typeof AdminProductsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/profile': {
+      id: '/admin/profile'
+      path: '/profile'
+      fullPath: '/admin/profile'
+      preLoaderRoute: typeof AdminProfileRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/register': {
+      id: '/admin/register'
+      path: '/register'
+      fullPath: '/admin/register'
+      preLoaderRoute: typeof AdminRegisterRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/reports': {
+      id: '/admin/reports'
+      path: '/reports'
+      fullPath: '/admin/reports'
+      preLoaderRoute: typeof AdminReportsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/support': {
+      id: '/admin/support'
+      path: '/support'
+      fullPath: '/admin/support'
+      preLoaderRoute: typeof AdminSupportRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/team': {
+      id: '/admin/team'
+      path: '/team'
+      fullPath: '/admin/team'
+      preLoaderRoute: typeof AdminTeamRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/supplier/': {
+      id: '/supplier/'
+      path: '/supplier'
+      fullPath: '/supplier/'
+      preLoaderRoute: typeof SupplierIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/supplier/dashboard': {
+      id: '/supplier/dashboard'
+      path: '/supplier/dashboard'
+      fullPath: '/supplier/dashboard'
+      preLoaderRoute: typeof SupplierDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/supplier/incoming-orders': {
+      id: '/supplier/incoming-orders'
+      path: '/supplier/incoming-orders'
+      fullPath: '/supplier/incoming-orders'
+      preLoaderRoute: typeof SupplierIncomingOrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/supplier/inventory': {
+      id: '/supplier/inventory'
+      path: '/supplier/inventory'
+      fullPath: '/supplier/inventory'
+      preLoaderRoute: typeof SupplierInventoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/supplier/profile': {
+      id: '/supplier/profile'
+      path: '/supplier/profile'
+      fullPath: '/supplier/profile'
+      preLoaderRoute: typeof SupplierProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/supplier/reports': {
+      id: '/supplier/reports'
+      path: '/supplier/reports'
+      fullPath: '/supplier/reports'
+      preLoaderRoute: typeof SupplierReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/supplier/rout': {
+      id: '/supplier/rout'
+      path: '/supplier/rout'
+      fullPath: '/supplier/rout'
+      preLoaderRoute: typeof SupplierRoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/supplier/sales-history': {
+      id: '/supplier/sales-history'
+      path: '/supplier/sales-history'
+      fullPath: '/supplier/sales-history'
+      preLoaderRoute: typeof SupplierSalesHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(pharmacy)/inventory_/add': {
+      id: '/(pharmacy)/inventory_/add'
+      path: '/inventory/add'
+      fullPath: '/inventory/add'
+      preLoaderRoute: typeof pharmacyInventoryAddRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(pharmacy)/staff/add': {
+      id: '/(pharmacy)/staff/add'
+      path: '/staff/add'
+      fullPath: '/staff/add'
+      preLoaderRoute: typeof pharmacyStaffAddRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/pharmacies_/$pharmacyId': {
@@ -828,12 +831,19 @@ declare module '@tanstack/react-router' {
       path: '/pharmacies/$pharmacyId'
       fullPath: '/admin/pharmacies/$pharmacyId'
       preLoaderRoute: typeof AdminPharmaciesPharmacyIdRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/(pharmacy)/inventory_/add_/$productId': {
+      id: '/(pharmacy)/inventory_/add_/$productId'
+      path: '/inventory/add/$productId'
+      fullPath: '/inventory/add/$productId'
+      preLoaderRoute: typeof pharmacyInventoryAddProductIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
 
-interface AdminRouteChildren {
+interface AdminRouteRouteChildren {
   AdminLogsRoute: typeof AdminLogsRoute
   AdminPayoutRoute: typeof AdminPayoutRoute
   AdminPharmaciesRoute: typeof AdminPharmaciesRoute
@@ -848,7 +858,7 @@ interface AdminRouteChildren {
   AdminPharmaciesPharmacyIdRoute: typeof AdminPharmaciesPharmacyIdRoute
 }
 
-const AdminRouteChildren: AdminRouteChildren = {
+const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminLogsRoute: AdminLogsRoute,
   AdminPayoutRoute: AdminPayoutRoute,
   AdminPharmaciesRoute: AdminPharmaciesRoute,
@@ -863,56 +873,51 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminPharmaciesPharmacyIdRoute: AdminPharmaciesPharmacyIdRoute,
 }
 
-const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
+  AdminRouteRouteChildren,
+)
 
-interface SupplierRouteChildren {
-  SupplierDashboardRoute: typeof SupplierDashboardRoute
-  SupplierIncomingOrdersRoute: typeof SupplierIncomingOrdersRoute
-  SupplierInventoryRoute: typeof SupplierInventoryRoute
-  SupplierProfileRoute: typeof SupplierProfileRoute
-  SupplierReportsRoute: typeof SupplierReportsRoute
-  SupplierSalesHistoryRoute: typeof SupplierSalesHistoryRoute
-  SupplierIndexRoute: typeof SupplierIndexRoute
-}
-
-const SupplierRouteChildren: SupplierRouteChildren = {
+const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
+  AdminRouteRoute: AdminRouteRouteWithChildren,
+  ContactRoute: ContactRoute,
+  FeaturesRoute: FeaturesRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
+  LoginRoute: LoginRoute,
+  PricingRoute: PricingRoute,
+  RegisterRoute: RegisterRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
+  pharmacyDashboardRoute: pharmacyDashboardRoute,
+  pharmacyInventoryRoute: pharmacyInventoryRoute,
+  pharmacyMarketplaceRoute: pharmacyMarketplaceRoute,
+  pharmacyOrdersRoute: pharmacyOrdersRoute,
+  pharmacyPosRoute: pharmacyPosRoute,
+  pharmacyProfileRoute: pharmacyProfileRoute,
+  pharmacyPurchaseOrdersRoute: pharmacyPurchaseOrdersRoute,
+  pharmacyReportsRoute: pharmacyReportsRoute,
+  pharmacySalesRoute: pharmacySalesRoute,
   SupplierDashboardRoute: SupplierDashboardRoute,
   SupplierIncomingOrdersRoute: SupplierIncomingOrdersRoute,
   SupplierInventoryRoute: SupplierInventoryRoute,
   SupplierProfileRoute: SupplierProfileRoute,
   SupplierReportsRoute: SupplierReportsRoute,
+  SupplierRoutRoute: SupplierRoutRoute,
   SupplierSalesHistoryRoute: SupplierSalesHistoryRoute,
   SupplierIndexRoute: SupplierIndexRoute,
-}
-
-const SupplierRouteWithChildren = SupplierRoute._addFileChildren(
-  SupplierRouteChildren,
-)
-
-const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  AdminRoute: AdminRouteWithChildren,
-  ContactRoute: ContactRoute,
-  DashboardRoute: DashboardRoute,
-  FeaturesRoute: FeaturesRoute,
-  ForgotPasswordRoute: ForgotPasswordRoute,
-  InventoryRoute: InventoryRoute,
-  LoginRoute: LoginRoute,
-  MarketplaceRoute: MarketplaceRoute,
-  OrdersRoute: OrdersRoute,
-  PosRoute: PosRoute,
-  PricingRoute: PricingRoute,
-  ProfileRoute: ProfileRoute,
-  PurchaseOrdersRoute: PurchaseOrdersRoute,
-  RegisterRoute: RegisterRoute,
-  ReportsRoute: ReportsRoute,
-  ResetPasswordRoute: ResetPasswordRoute,
-  SalesRoute: SalesRoute,
-  SupplierRoute: SupplierRouteWithChildren,
-  InventoryAddRoute: InventoryAddRoute,
-  StaffAddRoute: StaffAddRoute,
-  InventoryAddProductIdRoute: InventoryAddProductIdRoute,
+  pharmacyInventoryAddRoute: pharmacyInventoryAddRoute,
+  pharmacyStaffAddRoute: pharmacyStaffAddRoute,
+  pharmacyInventoryAddProductIdRoute: pharmacyInventoryAddProductIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

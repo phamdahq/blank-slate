@@ -29,7 +29,7 @@ import type {
 } from "@/services/purchasing/purchaseOrderService";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/purchase-orders")({
+export const Route = createFileRoute("/(pharmacy)/purchase-orders")({
   head: () => ({
     meta: [
       { title: "Purchase Orders · Phamda" },

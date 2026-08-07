@@ -25,7 +25,7 @@ const searchSchema = z.object({
   mode: z.enum(["first", "batch"]).optional().default("first"),
 });
 
-export const Route = createFileRoute("/inventory_/add_/$productId")({
+export const Route = createFileRoute("/(pharmacy)/inventory_/add_/$productId")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [

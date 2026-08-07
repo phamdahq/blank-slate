@@ -21,7 +21,7 @@ import {
 import type { SalesHistoryRow } from "@/services/pos/salesHistoryService";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/sales")({
+export const Route = createFileRoute("/(pharmacy)/sales")({
   head: () => ({
     meta: [
       { title: "Sales History · Phamda" },
