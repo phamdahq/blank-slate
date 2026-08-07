@@ -27,11 +27,29 @@ export const Route = createFileRoute("/pricing")({
 
 const PLANS = [
   {
-    name: "Standard",
+    name: "Basic",
     tagline: "For single-location pharmacies getting off spreadsheets.",
+    monthly: 1500,
+    annual: 1200,
+    highlight: false,
+    features: [
+      ["Offline-first POS", true],
+      ["Global catalog validation", true],
+      ["Batch & expiry tracking", true],
+      ["Owner / admin / staff roles", true],
+      ["Up to 3 staff accounts", true],
+      ["Standard reports", true],
+      ["Advanced financial reporting", false],
+      ["Multi-branch tenants", false],
+      ["Priority onboarding & migration", false],
+    ] as [string, boolean][],
+  },
+  {
+    name: "Pro",
+    tagline: "For busy pharmacies that need deeper reporting and more staff.",
     monthly: 2500,
     annual: 2000,
-    highlight: false,
+    highlight: true,
     features: [
       ["Offline-first POS", true],
       ["Global catalog validation", true],
@@ -39,6 +57,7 @@ const PLANS = [
       ["Owner / admin / staff roles", true],
       ["Up to 8 staff accounts", true],
       ["Standard reports", true],
+      ["Advanced financial reporting", true],
       ["Multi-branch tenants", false],
       ["Priority onboarding & migration", false],
     ] as [string, boolean][],
@@ -48,13 +67,14 @@ const PLANS = [
     tagline: "For pharmacy groups running multiple branches and stations.",
     monthly: 6500,
     annual: 5200,
-    highlight: true,
+    highlight: false,
     features: [
       ["Offline-first POS", true],
       ["Global catalog validation", true],
       ["Batch & expiry tracking", true],
       ["Owner / admin / staff roles", true],
       ["Unlimited staff accounts", true],
+      ["Standard reports", true],
       ["Advanced financial reporting", true],
       ["Multi-branch tenants", true],
       ["Priority onboarding & migration", true],
@@ -122,8 +142,8 @@ function PricingPage() {
         </div>
       </section>
 
-      <section className="mx-auto w-full max-w-5xl px-5 py-16">
-        <div className="grid gap-6 lg:grid-cols-2">
+      <section className="mx-auto w-full max-w-6xl px-5 py-16">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {PLANS.map((plan) => (
             <article
               key={plan.name}
