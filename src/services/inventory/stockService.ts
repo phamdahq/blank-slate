@@ -28,7 +28,7 @@ export async function addFirstBatch(batch: Batch): Promise<Batch> {
   if (!isBrowser || !navigator.onLine) throw new OfflineError();
 
   const { data, error } = await supabase
-    .from("batches")
+    .from("pharmacy_batches")
     .insert(batch)
     .select()
     .single();

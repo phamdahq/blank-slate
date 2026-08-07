@@ -193,7 +193,7 @@ function isPermanentFailure(msg: string): boolean {
 
 /** Insert the sale row directly and decrement the batch (fallback path). */
 async function insertSaleDirect(row: SaleRow) {
-  const { error } = await supabase.from("sales").insert({
+  const { error } = await supabase.from("pharmacy_sales").insert({
     id: row.id,
     transaction_id: row.transaction_id ?? null,
     pharmacy_id: row.pharmacy_id,
@@ -210,7 +210,7 @@ async function insertSaleDirect(row: SaleRow) {
   }
 
   const { data: batch, error: readErr } = await supabase
-    .from("batches")
+    .from("pharmacy_batches")
     .select("quantity")
     .eq("id", row.batch_id)
     .maybeSingle();
@@ -218,7 +218,7 @@ async function insertSaleDirect(row: SaleRow) {
   if (batch) {
     const next = Math.max(0, (batch.quantity ?? 0) - row.quantity_sold);
     const { error: updErr } = await supabase
-      .from("batches")
+      .from("pharmacy_batches")
       .update({ quantity: next })
       .eq("id", row.batch_id);
     if (updErr) throw new Error(updErr.message);
@@ -256,17 +256,17 @@ async function applyOp(op: OutboxOp): Promise<void> {
     }
 
     case "batches.upsert": {
-      const { error } = await supabase.from("batches").upsert(op.row);
+      const { error } = await supabase.from("pharmacy_batches").upsert(op.row);
       if (error) throw new Error(error.message);
       return;
     }
     case "expenses.insert": {
-      const { error } = await supabase.from("expenses").insert(op.row);
+      const { error } = await supabase.from("pharmacy_expenses").insert(op.row);
       if (error) throw new Error(error.message);
       return;
     }
     case "expenses.delete": {
-      const { error } = await supabase.from("expenses").delete().eq("id", op.id);
+      const { error } = await supabase.from("pharmacy_expenses").delete().eq("id", op.id);
       if (error) throw new Error(error.message);
       return;
     }
@@ -280,7 +280,7 @@ async function applyOp(op: OutboxOp): Promise<void> {
     case "users.update": {
       // RLS restricts this to the caller's own row; never trust client ids for
       // anything else.
-      const { error } = await supabase.from("users").update(op.patch).eq("id", op.id);
+      const { error } = await supabase.from("pharmacy_users").update(op.patch).eq("id", op.id);
       if (error) throw new Error(error.message);
       return;
     }

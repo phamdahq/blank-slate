@@ -99,13 +99,13 @@ export async function getPharmacyDetail(id: string): Promise<PharmacyDetail> {
       .eq("id", id)
       .maybeSingle(),
     supabase
-      .from("users")
+      .from("pharmacy_users")
       .select("id, first_name, last_name, phone_number, email, role")
       .eq("pharmacy_id", id)
       .eq("role", "owner")
       .maybeSingle(),
     supabase
-      .from("platform_payouts")
+      .from("platform_pharmacies_payouts")
       .select("id, amount, payment_method, status, paid_at")
       .eq("pharmacy_id", id)
       .order("paid_at", { ascending: false })

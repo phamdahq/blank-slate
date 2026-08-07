@@ -150,7 +150,7 @@ export function totalsInRange(rows: Expense[], from: string, to: string) {
 export async function pullExpenses(pharmacyId: string): Promise<void> {
   if (!isBrowser || !navigator.onLine || !pharmacyId) return;
   const { data, error } = await supabase
-    .from("expenses")
+    .from("pharmacy_expenses")
     .select("*")
     .eq("pharmacy_id", pharmacyId);
   if (error || !data) return;

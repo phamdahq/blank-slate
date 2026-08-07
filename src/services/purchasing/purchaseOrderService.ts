@@ -94,7 +94,7 @@ export async function fetchPurchaseOrders(
 ): Promise<PurchaseOrder[]> {
   if (!pharmacyId) return [];
   let q = supabase
-    .from("purchase_orders")
+    .from("pharmacies_purchase_orders")
     .select("*")
     .eq("pharmacy_id", pharmacyId)
     .order("order_date", { ascending: false });
@@ -141,7 +141,7 @@ export async function fetchPurchaseOrders(
 
 export async function fetchOrderItems(orderId: string): Promise<PurchaseOrderItem[]> {
   const { data, error } = await supabase
-    .from("purchase_order_items")
+    .from("pharmacy_purchase_order_items")
     .select("*")
     .eq("purchase_order_id", orderId);
   if (error) throw new Error(error.message);
@@ -168,7 +168,7 @@ export async function createPurchaseOrder(input: NewPurchaseOrder): Promise<stri
   const paid = Math.min(Math.max(input.amount_paid ?? 0, 0), total);
 
   const { data, error } = await supabase
-    .from("purchase_orders")
+    .from("pharmacies_purchase_orders")
     .insert({
       pharmacy_id: input.pharmacy_id,
       supplier_id: input.supplier_id ?? null,
@@ -184,7 +184,7 @@ export async function createPurchaseOrder(input: NewPurchaseOrder): Promise<stri
   if (error) throw new Error(error.message);
   const orderId = (data as { id: string }).id;
 
-  const { error: itemErr } = await supabase.from("purchase_order_items").insert(
+  const { error: itemErr } = await supabase.from("pharmacy_purchase_order_items").insert(
     usable.map((l) => ({
       purchase_order_id: orderId,
       product_id: l.product_id,
@@ -197,7 +197,7 @@ export async function createPurchaseOrder(input: NewPurchaseOrder): Promise<stri
     })),
   );
   if (itemErr) {
-    await supabase.from("purchase_orders").delete().eq("id", orderId);
+    await supabase.from("pharmacies_purchase_orders").delete().eq("id", orderId);
     throw new Error(itemErr.message);
   }
   return orderId;
@@ -207,14 +207,14 @@ export async function createPurchaseOrder(input: NewPurchaseOrder): Promise<stri
 export async function recordPayment(orderId: string, amount: number): Promise<void> {
   if (amount <= 0) throw new Error("Enter an amount greater than zero.");
   const { data, error } = await supabase
-    .from("purchase_orders")
+    .from("pharmacies_purchase_orders")
     .select("left_balance")
     .eq("id", orderId)
     .single();
   if (error) throw new Error(error.message);
   const next = Math.max(0, Number((data as { left_balance: number }).left_balance) - amount);
   const { error: updErr } = await supabase
-    .from("purchase_orders")
+    .from("pharmacies_purchase_orders")
     .update({ left_balance: next })
     .eq("id", orderId);
   if (updErr) throw new Error(updErr.message);
@@ -222,7 +222,7 @@ export async function recordPayment(orderId: string, amount: number): Promise<vo
 
 export async function cancelOrder(orderId: string): Promise<void> {
   const { error } = await supabase
-    .from("purchase_orders")
+    .from("pharmacies_purchase_orders")
     .update({ status: "Cancelled" })
     .eq("id", orderId);
   if (error) throw new Error(error.message);
@@ -250,11 +250,11 @@ export async function markReceived(order: PurchaseOrder): Promise<void> {
     selling_price: Number(it.selling_price ?? it.unit_cost),
   }));
 
-  const { data, error } = await supabase.from("batches").insert(batches).select();
+  const { data, error } = await supabase.from("pharmacy_batches").insert(batches).select();
   if (error) throw new Error(error.message);
 
   const { error: updErr } = await supabase
-    .from("purchase_orders")
+    .from("pharmacies_purchase_orders")
     .update({ status: "Received" })
     .eq("id", order.id);
   if (updErr) throw new Error(updErr.message);

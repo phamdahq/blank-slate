@@ -25,7 +25,7 @@ export interface AdminPayoutRow extends PlatformPayout {
 }
 
 export async function listPayouts(pharmacyId?: string): Promise<PlatformPayout[]> {
-  let q = supabase.from("platform_payouts").select("*").order("paid_at", { ascending: false });
+  let q = supabase.from("platform_pharmacies_payouts").select("*").order("paid_at", { ascending: false });
   if (pharmacyId) q = q.eq("pharmacy_id", pharmacyId);
   const { data, error } = await q;
   if (error) throw error;
@@ -35,7 +35,7 @@ export async function listPayouts(pharmacyId?: string): Promise<PlatformPayout[]
 /** All payouts across every tenant, joined with pharmacy names. */
 export async function listAllPayoutsForAdmin(): Promise<AdminPayoutRow[]> {
   const { data, error } = await supabase
-    .from("platform_payouts")
+    .from("platform_pharmacies_payouts")
     .select("*, pharmacies(name)")
     .order("paid_at", { ascending: false });
   if (error) throw error;
@@ -51,7 +51,7 @@ export async function submitPayout(
   input: Omit<PlatformPayout, "id" | "status" | "paid_at"> & { id?: string },
 ): Promise<PlatformPayout> {
   const { data, error } = await supabase
-    .from("platform_payouts")
+    .from("platform_pharmacies_payouts")
     .insert({ ...input, status: "pending" })
     .select("*")
     .single();
@@ -61,7 +61,7 @@ export async function submitPayout(
 
 export async function setPayoutStatus(id: string, status: PayoutStatus): Promise<void> {
   const { data, error } = await supabase
-    .from("platform_payouts")
+    .from("platform_pharmacies_payouts")
     .update({ status })
     .eq("id", id)
     .select("id, pharmacy_id")

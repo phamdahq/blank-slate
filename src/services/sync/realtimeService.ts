@@ -35,7 +35,7 @@ async function pullProducts(): Promise<void> {
 
 async function pullBatches(pharmacyId: string): Promise<void> {
   const { data, error } = await supabase
-    .from("batches")
+    .from("pharmacy_batches")
     .select("*")
     .eq("pharmacy_id", pharmacyId);
   if (error || !data) return;
@@ -52,7 +52,7 @@ async function pullBatches(pharmacyId: string): Promise<void> {
 
 async function pullSales(pharmacyId: string): Promise<void> {
   const { data, error } = await supabase
-    .from("sales")
+    .from("pharmacy_sales")
     .select("*")
     .eq("pharmacy_id", pharmacyId)
     .order("created_at", { ascending: false })
@@ -63,7 +63,7 @@ async function pullSales(pharmacyId: string): Promise<void> {
 
 async function pullExpenses(pharmacyId: string): Promise<void> {
   const { data, error } = await supabase
-    .from("expenses")
+    .from("pharmacy_expenses")
     .select("*")
     .eq("pharmacy_id", pharmacyId);
   if (error || !data) return;

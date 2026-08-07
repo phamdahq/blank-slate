@@ -69,7 +69,7 @@ export const emptySalesHistoryPage: SalesHistoryPage = {
 /** Staff members that can appear in the `sold_by` filter. */
 export async function fetchCashiers(pharmacyId: string): Promise<Cashier[]> {
   const { data, error } = await supabase
-    .from("users")
+    .from("pharmacy_users")
     .select("id, first_name, last_name, role")
     .eq("pharmacy_id", pharmacyId)
     .order("first_name");
@@ -93,8 +93,8 @@ async function productIdsMatching(term: string): Promise<string[]> {
 
 function baseQuery(f: SalesHistoryFilters, select: string, count?: boolean) {
   let q = count
-    ? supabase.from("sales").select(select, { count: "exact" })
-    : supabase.from("sales").select(select);
+    ? supabase.from("pharmacy_sales").select(select, { count: "exact" })
+    : supabase.from("pharmacy_sales").select(select);
   q = q.eq("pharmacy_id", f.pharmacyId);
   if (f.from) q = q.gte("sale_date", f.from);
   if (f.to) q = q.lte("sale_date", f.to);
@@ -169,7 +169,7 @@ export async function fetchTransactionLines(
   transactionId: string,
 ): Promise<SalesHistoryRow[]> {
   const { data, error } = await supabase
-    .from("sales")
+    .from("pharmacy_sales")
     .select("*")
     .eq("pharmacy_id", pharmacyId)
     .eq("transaction_id", transactionId)
@@ -221,7 +221,7 @@ async function resolveUsers(ids: string[]): Promise<Map<string, string>> {
   const map = new Map<string, string>();
   if (ids.length === 0) return map;
   const { data } = await supabase
-    .from("users")
+    .from("pharmacy_users")
     .select("id, first_name, last_name")
     .in("id", ids);
   for (const u of data ?? []) {
